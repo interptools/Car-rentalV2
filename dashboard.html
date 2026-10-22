@@ -2,7 +2,7 @@
 <!--
   ============================================================
   CAR RENTAL — OWNER DASHBOARD (FLEET + FEATURES MANAGER)
-  VERSION: 4.5.1 (Per-Car Base Rate, expanded T&Cs, dynamic article)
+  VERSION: 4.5.2 (Fixed Calendar Ghost Cars & Precision)
   ============================================================
 -->
 <html lang="en">
@@ -10,7 +10,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="app-version" content="4.5.1">
+  <meta name="app-version" content="4.5.2">
   <title>Owner Dashboard | Fleet</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -296,7 +296,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-const APP_VERSION = "4.5.1";
+const APP_VERSION = "4.5.2";
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwcRkc6qj9XHTKV6gdZv1rAKHtxr1hugiPd7-QaT-0H-VR_aGF09dL8sAq9syrtAna/exec";
 const PH_TIMEZONE = "Asia/Manila";
 const BUFFER_MINUTES = 60;
@@ -466,7 +466,8 @@ async function loadCars() {
   try {
     const result = await requestJsonp("getcars");
     if (result.ok && result.cars) {
-      carCatalog = result.cars;
+      // Filter out ghost/empty rows from Google Sheets to prevent calendar logic bugs
+      carCatalog = result.cars.filter(c => c && c.id && c.name);
       
       const filter = $("carFilter");
       const editSelect = $("editCarSelect");
@@ -718,7 +719,8 @@ function getDayStatusForCar(dateKey, carRecords) {
       else merged.push(interval);
     }
   }
-  if (merged.length === 1 && merged[0][0] <= 0 && merged[0][1] >= 1440) return 'full';
+  // Added a <= 1 and >= 1439 tolerance to catch 23:59 precision
+  if (merged.length === 1 && merged[0][0] <= 1 && merged[0][1] >= 1439) return 'full';
   return 'partial';
 }
 
@@ -774,11 +776,12 @@ function renderPartialAvailability() {
       for (const car of carCatalog) {
         const carRecords = records.filter(r => r.carId === car.id);
         const carStatus = getDayStatusForCar(key, carRecords);
+        
         if (carStatus === 'partial') {
           const { slots, totalHours } = getAvailableSlotsForDay(key, carRecords);
           carBlocks += `
-            <div class="mt-2 pl-3 border-l-2 border-emerald-300">
-              <p class="text-xs font-bold text-slate-700">${escapeHtml(car.name)} <span class="text-emerald-700">— ${totalHours}h free</span></p>
+            <div class="mt-2 pl-3 border-l-2 border-amber-300">
+              <p class="text-xs font-bold text-slate-700">${escapeHtml(car.name)} <span class="text-amber-700">— ${totalHours}h free</span></p>
               <ul class="text-xs text-slate-600 space-y-0.5 mt-1">
                 ${slots.map(s => `<li>▪ ${s}</li>`).join('')}
               </ul>
@@ -787,6 +790,11 @@ function renderPartialAvailability() {
           carBlocks += `
             <div class="mt-2 pl-3 border-l-2 border-red-300">
               <p class="text-xs font-bold text-red-700">${escapeHtml(car.name)} — Fully booked</p>
+            </div>`;
+        } else if (carStatus === 'available') {
+          carBlocks += `
+            <div class="mt-2 pl-3 border-l-2 border-green-300">
+              <p class="text-xs font-bold text-green-700">${escapeHtml(car.name)} — Available all day</p>
             </div>`;
         }
       }
@@ -873,7 +881,6 @@ function buildEmailContent(r) {
   const tpl = getCustomTemplate();
   const estPrice = r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays, r.carId)) : "—";
   
-  // Helper to safely return a value or a dash if it's completely missing
   const safe = (val) => (val !== undefined && val !== null && String(val).trim() !== "") ? val : "—";
 
   return tpl
