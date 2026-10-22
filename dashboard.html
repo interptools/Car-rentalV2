@@ -915,7 +915,7 @@ function openEmailModal(record) {
 function closeEmailModal() { $("emailModal").classList.add("hidden"); }
 function closeSettingsModal() { $("settingsModal").classList.add("hidden"); }
 function closeManageCarsModal() { $("manageCarsModal").classList.add("hidden"); }
-  try {
+  async function copyEmailToClipboard() {
     await navigator.clipboard.writeText(text);
     $("copyStatus").textContent = "Copied to clipboard!";
     setTimeout(() => $("copyStatus").textContent = "", 3000);
