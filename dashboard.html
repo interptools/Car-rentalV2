@@ -2,7 +2,7 @@
 <!--
   ============================================================
   CAR RENTAL — OWNER DASHBOARD (FLEET + FEATURES MANAGER)
-  VERSION: 4.3.0
+  VERSION: 4.5.0 (Per-Car Base Rate)
   ============================================================
 -->
 <html lang="en">
@@ -10,7 +10,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="app-version" content="4.3.0">
+  <meta name="app-version" content="4.5.0">
   <title>Owner Dashboard | Fleet</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -197,6 +197,10 @@
                 <input type="text" id="newCarColor" class="field" placeholder="e.g., White">
               </div>
             </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Base Daily Rate (PHP) *</label>
+              <input type="number" id="newCarBaseRate" class="field font-bold" placeholder="e.g., 2200" min="0" step="50" required>
+            </div>
             <button type="submit" class="w-full rounded-lg bg-indigo-600 text-white font-bold py-2 hover:bg-indigo-700 mt-2">Add Car</button>
           </form>
           <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-lg text-xs text-indigo-800 mt-4">
@@ -215,6 +219,11 @@
           </div>
 
           <div id="featuresEditorContainer" class="hidden space-y-4">
+            <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-lg">
+              <label class="block text-xs font-bold text-slate-600 mb-1">Base Daily Rate (PHP) *</label>
+              <input type="number" id="editCarBaseRate" class="field font-bold" min="0" step="50" placeholder="e.g., 2200">
+            </div>
+
             <div id="edit-performance" class="feature-group">
               <h5 class="font-bold text-sm text-slate-700 mb-1 border-b pb-1">⚙️ Performance</h5>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs"></div>
@@ -236,7 +245,7 @@
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs"></div>
             </div>
             
-            <button id="saveFeaturesBtn" class="w-full rounded-lg bg-emerald-600 text-white font-bold py-2 hover:bg-emerald-700 mt-2">Save Features</button>
+            <button id="saveFeaturesBtn" class="w-full rounded-lg bg-emerald-600 text-white font-bold py-2 hover:bg-emerald-700 mt-2">Save Features & Rate</button>
           </div>
           <p id="editFeaturesStatus" class="text-sm text-center font-bold text-emerald-700"></p>
         </div>
@@ -251,7 +260,7 @@
         <button id="closeSettingsBtn" class="text-slate-400 hover:text-slate-800 text-2xl">&times;</button>
       </div>
       <div class="mb-5 bg-slate-50 border rounded-xl p-4">
-        <label class="block text-sm font-bold mb-1" for="baseRateInput">Base Daily Rate (PHP)</label>
+        <label class="block text-sm font-bold mb-1" for="baseRateInput">Fallback Daily Rate (PHP) — used only when a car has no rate set</label>
         <input type="number" id="baseRateInput" class="field font-bold text-lg" min="0" step="50" value="2200">
       </div>
       <p class="text-sm font-bold text-slate-700 mb-2">Email Template</p>
@@ -287,7 +296,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-const APP_VERSION = "4.3.0";
+const APP_VERSION = "4.5.0";
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwcRkc6qj9XHTKV6gdZv1rAKHtxr1hugiPd7-QaT-0H-VR_aGF09dL8sAq9syrtAna/exec";
 const PH_TIMEZONE = "Asia/Manila";
 const BUFFER_MINUTES = 60;
@@ -358,7 +367,7 @@ const $ = id => document.getElementById(id);
 function parseRecordTimestamp(value) {
   if (!value) return null;
   let str = String(value).trim();
-  if (str.startsWith("'")) str = str.slice(1);
+  while (str.startsWith("'")) str = str.slice(1);
   if (/^\d+$/.test(str)) str = Number(str);
   if (typeof str === "number") { const ms = str > 1e12 ? str : str * 1000; const d = new Date(ms); return isNaN(d.getTime()) ? null : d; }
   if (typeof str === "string") {
@@ -380,17 +389,32 @@ function formatDateTime(v) {
 function period(r) { return `${formatDateTime(r.pickupDate)} <br><span class="text-xs text-slate-400">to</span><br> ${formatDateTime(r.returnDate)}`; }
 function statusOf(r) { const s = String(r.status || "").trim(); return s ? s : "Pending"; }
 
-function calculateEstimatedPrice(days) {
+function getCarBaseRate(carId) {
+  const car = carCatalog.find(c => c.id === carId);
+  if (car && car.baseRate !== undefined && car.baseRate !== null && !isNaN(Number(car.baseRate))) {
+    return Number(car.baseRate);
+  }
+  return dailyRate;
+}
+
+function calculateEstimatedPrice(days, carId) {
   const d = Number(days);
   if (!d || isNaN(d)) return 0;
-  let total = d * dailyRate;
+  const rate = getCarBaseRate(carId);
+  let total = d * rate;
   if (d >= 30) total *= 0.85; else if (d >= 7) total *= 0.90; else if (d >= 5) total *= 0.95;
   return Math.round(total);
 }
-function formatPrice(amount) { if (!amount) return "—"; return '₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); }
+function formatPrice(amount) {
+  if (amount == null || isNaN(amount)) return "—";
+  return '₱' + Number(amount).toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+}
 function formatMinutesToTime(min) {
-  let h = Math.floor(min / 60); let m = Math.floor(min % 60);
-  let ampm = h >= 12 ? 'PM' : 'AM'; h = h % 12; if (h === 0) h = 12;
+  let h = Math.floor(min / 60);
+  let m = Math.floor(min % 60);
+  let ampm = (h >= 12 && h < 24) ? 'PM' : 'AM';
+  h = h % 12;
+  if (h === 0) h = 12;
   return `${h}:${m.toString().padStart(2, '0')} ${ampm}`;
 }
 
@@ -399,7 +423,7 @@ function showToast(message, type = "success") {
   const toast = document.createElement("div");
   const bg = type === "success" ? "bg-emerald-600" : (type === "error" ? "bg-red-600" : "bg-slate-800");
   toast.className = `toast ${bg} text-white px-6 py-3 rounded-lg shadow-lg font-bold flex items-center gap-2`;
-  toast.innerHTML = message;
+  toast.textContent = message;
   container.appendChild(toast);
   setTimeout(() => { toast.classList.add("toast-hide"); setTimeout(() => toast.remove(), 300); }, 3000);
 }
@@ -434,12 +458,14 @@ async function loadCars() {
 async function loadRecords() {
   const status = $("loadStatus");
   status.textContent = "Loading records…";
+  status.className = "p-2 text-sm text-slate-500";
   try {
     const result = await requestJsonp("list");
     if (!result.ok) throw new Error(result.error || "Rejected");
     records = Array.isArray(result.records) ? result.records : [];
     renderAll();
     status.textContent = `Last updated: ${new Date().toLocaleTimeString("en-PH", { timeZone: PH_TIMEZONE })}`;
+    status.className = "p-2 text-sm text-slate-500";
   } catch (error) {
     console.error(error);
     status.textContent = "Could not load records. Check connection or key.";
@@ -449,7 +475,7 @@ async function loadRecords() {
 
 function requestJsonp(action, row = null, extraParams = {}) {
   return new Promise((resolve, reject) => {
-    const cb = "__adminCb_" + Date.now();
+    const cb = "__adminCb_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
     const script = document.createElement("script");
     const url = new URL(APPS_SCRIPT_URL);
     let done = false;
@@ -482,8 +508,8 @@ function renderAll() {
   const latest = carRecords[carRecords.length - 1];
   $("latestRecord").textContent = latest ? fmt(latest.submittedAt || latest.timestamp) : "—";
 
-  renderMiniCalendar(carRecords);
-  renderPartialAvailability(carRecords);
+  renderMiniCalendar();
+  renderPartialAvailability();
 
   const q = $("searchInput").value.trim().toLowerCase();
   const filtered = carRecords.filter(r => {
@@ -502,11 +528,10 @@ function renderAll() {
   }
 
   tbody.innerHTML = filtered.map(r => {
-    const idx = records.indexOf(r);
     const status = statusOf(r);
     const statusBadge = status === "Confirmed" ? `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">CONFIRMED</span>` : `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 text-xs font-bold">PENDING</span>`;
     const confirmBtn = status === "Confirmed" ? `<button class="confirmBtn text-amber-600 hover:underline text-xs font-bold" data-row="${r._row}" data-confirm="false">Unconfirm</button>` : `<button class="confirmBtn text-emerald-600 hover:underline text-xs font-bold" data-row="${r._row}" data-confirm="true">Confirm</button>`;
-    const estPrice = r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays)) : "—";
+    const estPrice = r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays, r.carId)) : "—";
 
     return `<tr class="hover:bg-slate-50 transition-colors">
       <td class="text-xs text-slate-500">${escapeHtml(fmt(r.submittedAt || r.timestamp))}</td>
@@ -520,17 +545,16 @@ function renderAll() {
       <td>${statusBadge}</td>
       <td class="space-x-3 whitespace-nowrap">
         ${confirmBtn}
-        <button class="pdfBtn text-slate-600 hover:underline text-xs font-bold" data-idx="${idx}">PDF</button>
-        <button class="emailBtn text-sky-600 hover:underline text-xs font-bold" data-idx="${idx}">Email</button>
+        <button class="pdfBtn text-slate-600 hover:underline text-xs font-bold" data-row="${r._row}">PDF</button>
+        <button class="emailBtn text-sky-600 hover:underline text-xs font-bold" data-row="${r._row}">Email</button>
       </td>
     </tr>`;
   }).join("");
 
   mobileDiv.innerHTML = filtered.map(r => {
-    const idx = records.indexOf(r);
     const status = statusOf(r);
     const statusBadge = status === "Confirmed" ? `<span class="px-2 py-1 rounded bg-emerald-100 text-emerald-800 text-xs font-bold">CONFIRMED</span>` : `<span class="px-2 py-1 rounded bg-amber-100 text-amber-800 text-xs font-bold">PENDING</span>`;
-    const estPrice = r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays)) : "—";
+    const estPrice = r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays, r.carId)) : "—";
     
     return `<div class="border rounded-xl p-4 shadow-sm bg-white space-y-3">
       <div class="flex justify-between items-start border-b pb-2">
@@ -545,24 +569,30 @@ function renderAll() {
         <p class="mt-1 font-bold text-slate-800">${r.totalDays || 0} days — <span class="text-emerald-600">Est: ${estPrice}</span></p>
       </div>
       <div class="flex flex-wrap gap-2 pt-2 border-t mt-2">
-        <button class="confirmBtn flex-1 text-center py-2 rounded-lg border ${status==="Confirmed"?'border-amber-300 text-amber-700':'bg-emerald-600 text-white'}" data-row="${r._row}" data-confirm="${status!=="Confirmed"}">${status==="Confirmed"?'Unconfirm':'Confirm'}</button>
-        <button class="pdfBtn py-2 px-3 rounded-lg bg-slate-100 text-slate-700 font-bold" data-idx="${idx}">PDF</button>
-        <button class="emailBtn py-2 px-3 rounded-lg bg-sky-100 text-sky-700 font-bold" data-idx="${idx}">Email</button>
+        <button class="confirmBtn flex-1 text-center py-2 rounded-lg font-bold ${status==="Confirmed"?'border border-amber-300 text-amber-700 bg-white':'bg-emerald-600 text-white border border-emerald-700'}" data-row="${r._row}" data-confirm="${status!=="Confirmed"}">${status==="Confirmed"?'Unconfirm':'Confirm'}</button>
+        <button class="pdfBtn py-2 px-3 rounded-lg bg-slate-100 text-slate-700 font-bold" data-row="${r._row}">PDF</button>
+        <button class="emailBtn py-2 px-3 rounded-lg bg-sky-100 text-sky-700 font-bold" data-row="${r._row}">Email</button>
       </div>
     </div>`;
   }).join("");
 
   document.querySelectorAll(".confirmBtn").forEach(b => b.addEventListener("click", () => toggleConfirm(b.dataset.row, b.dataset.confirm === "true")));
-  document.querySelectorAll(".pdfBtn").forEach(b => b.addEventListener("click", () => downloadAgreementPdf(records[Number(b.dataset.idx)])));
-  document.querySelectorAll(".emailBtn").forEach(b => b.addEventListener("click", () => openEmailModal(records[Number(b.dataset.idx)])));
+  document.querySelectorAll(".pdfBtn").forEach(b => b.addEventListener("click", () => {
+    const rec = records.find(r => Number(r._row) === Number(b.dataset.row));
+    if (rec) downloadAgreementPdf(rec);
+  }));
+  document.querySelectorAll(".emailBtn").forEach(b => b.addEventListener("click", () => {
+    const rec = records.find(r => Number(r._row) === Number(b.dataset.row));
+    if (rec) openEmailModal(rec);
+  }));
 }
 
-function getAvailableSlotsForDay(dateKey, currentRecords) {
+function getAvailableSlotsForDay(dateKey, carRecords) {
   const dayStart = new Date(`${dateKey}T00:00:00+08:00`).getTime();
   const dayEnd = new Date(`${dateKey}T23:59:59+08:00`).getTime();
   let blockedIntervals = [];
   
-  currentRecords.filter(r => statusOf(r) === "Confirmed").forEach(r => {
+  carRecords.filter(r => statusOf(r) === "Confirmed").forEach(r => {
     const rStartObj = parseRecordTimestamp(r.pickupDate);
     const rEndObj = parseRecordTimestamp(r.returnDate);
     if (!rStartObj || !rEndObj) return;
@@ -616,7 +646,7 @@ function getAvailableSlotsForDay(dateKey, currentRecords) {
   return { slots, totalHours: (totalMinutes / 60).toFixed(1) };
 }
 
-function getDashDayBookingStatus(dateKey, currentRecords) {
+function getDayStatusForCar(dateKey, carRecords) {
   const now = new Date();
   const dayStart = new Date(`${dateKey}T00:00:00+08:00`).getTime();
   const dayEnd = new Date(`${dateKey}T23:59:59+08:00`).getTime();
@@ -624,7 +654,7 @@ function getDashDayBookingStatus(dateKey, currentRecords) {
   if (dayEnd < now.getTime()) return 'past';
   let hasBookings = false;
   let intervals = [];
-  currentRecords.filter(r => statusOf(r) === "Confirmed").forEach(r => {
+  carRecords.filter(r => statusOf(r) === "Confirmed").forEach(r => {
     const rStartObj = parseRecordTimestamp(r.pickupDate);
     const rEndObj = parseRecordTimestamp(r.returnDate);
     if (!rStartObj || !rEndObj) return;
@@ -653,28 +683,82 @@ function getDashDayBookingStatus(dateKey, currentRecords) {
   return 'partial';
 }
 
-function renderPartialAvailability(currentRecords) {
-  const section = $("partialAvailabilitySection");
-  const list = $("partialAvailabilityList");
-  if (!section || !list) return;
+function getDashDayBookingStatus(dateKey, carFilter) {
+  const now = new Date();
+  const dayEnd = new Date(`${dateKey}T23:59:59+08:00`).getTime();
+  if (dayEnd < now.getTime()) return 'past';
+  
+  if (carFilter === 'all') {
+    if (carCatalog.length === 0) return 'available';
+    const statuses = carCatalog.map(car => {
+      const carRecords = records.filter(r => r.carId === car.id);
+      return getDayStatusForCar(dateKey, carRecords);
+    });
+    if (statuses.length === 0) return 'available';
+    if (statuses.every(s => s === 'full')) return 'full';
+    if (statuses.some(s => s === 'full' || s === 'partial')) return 'partial';
+    return 'available';
+  }
+  
+  const carRecords = records.filter(r => r.carId === carFilter);
+  return getDayStatusForCar(dateKey, carRecords);
+}
 
+function ensureDashCalInit() {
   if (dashCalYear === undefined) {
     const now = new Date();
     dashCalYear = now.getFullYear();
     dashCalMonth = now.getMonth();
   }
+}
 
+function renderPartialAvailability() {
+  const section = $("partialAvailabilitySection");
+  const list = $("partialAvailabilityList");
+  if (!section || !list) return;
+
+  ensureDashCalInit();
   const daysInMonth = new Date(dashCalYear, dashCalMonth + 1, 0).getDate();
   let html = "";
   let hasPartial = false;
 
   for (let d = 1; d <= daysInMonth; d++) {
     const key = `${dashCalYear}-${String(dashCalMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    if (getDashDayBookingStatus(key, currentRecords) === 'partial') {
-      hasPartial = true;
-      const { slots, totalHours } = getAvailableSlotsForDay(key, currentRecords);
-      const dateFmt = new Date(dashCalYear, dashCalMonth, d).toLocaleDateString("en-PH", { month: "short", day: "numeric", weekday: "short" });
-      
+    const dayStatus = getDashDayBookingStatus(key, currentCarFilter);
+    if (dayStatus !== 'partial') continue;
+    
+    hasPartial = true;
+    const dateFmt = new Date(dashCalYear, dashCalMonth, d).toLocaleDateString("en-PH", { month: "short", day: "numeric", weekday: "short" });
+
+    if (currentCarFilter === 'all') {
+      let carBlocks = "";
+      for (const car of carCatalog) {
+        const carRecords = records.filter(r => r.carId === car.id);
+        const carStatus = getDayStatusForCar(key, carRecords);
+        if (carStatus === 'partial') {
+          const { slots, totalHours } = getAvailableSlotsForDay(key, carRecords);
+          carBlocks += `
+            <div class="mt-2 pl-3 border-l-2 border-emerald-300">
+              <p class="text-xs font-bold text-slate-700">${escapeHtml(car.name)} <span class="text-emerald-700">— ${totalHours}h free</span></p>
+              <ul class="text-xs text-slate-600 space-y-0.5 mt-1">
+                ${slots.map(s => `<li>▪ ${s}</li>`).join('')}
+              </ul>
+            </div>`;
+        } else if (carStatus === 'full') {
+          carBlocks += `
+            <div class="mt-2 pl-3 border-l-2 border-red-300">
+              <p class="text-xs font-bold text-red-700">${escapeHtml(car.name)} — Fully booked</p>
+            </div>`;
+        }
+      }
+      html += `
+        <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
+          <div class="font-bold text-slate-800">${dateFmt}</div>
+          ${carBlocks}
+        </div>`;
+    } else {
+      const carRecords = records.filter(r => r.carId === currentCarFilter);
+      const { slots, totalHours } = getAvailableSlotsForDay(key, carRecords);
       html += `
         <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
           <div class="flex justify-between items-center mb-2">
@@ -684,8 +768,7 @@ function renderPartialAvailability(currentRecords) {
           <ul class="text-xs text-slate-600 space-y-1">
             ${slots.map(s => `<li class="flex items-center gap-1.5"><span class="text-emerald-500">▪</span> ${s}</li>`).join('')}
           </ul>
-        </div>
-      `;
+        </div>`;
     }
   }
 
@@ -699,16 +782,12 @@ function renderPartialAvailability(currentRecords) {
   }
 }
 
-function renderMiniCalendar(currentRecords) {
+function renderMiniCalendar() {
   const grid = $("miniCalendarGrid");
   const label = $("miniCalMonth");
   if (!grid || !label) return;
 
-  if (dashCalYear === undefined) {
-    const now = new Date();
-    dashCalYear = now.getFullYear();
-    dashCalMonth = now.getMonth();
-  }
+  ensureDashCalInit();
 
   label.textContent = new Date(dashCalYear, dashCalMonth, 1).toLocaleDateString("en-PH", { month: "long", year: "numeric" });
   const daysInMonth = new Date(dashCalYear, dashCalMonth + 1, 0).getDate();
@@ -718,7 +797,7 @@ function renderMiniCalendar(currentRecords) {
   for (let i = 0; i < startDay; i++) html += `<div></div>`;
   for (let d = 1; d <= daysInMonth; d++) {
     const key = `${dashCalYear}-${String(dashCalMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    const status = getDashDayBookingStatus(key, currentRecords);
+    const status = getDashDayBookingStatus(key, currentCarFilter);
     let cls = "aspect-square flex items-center justify-center rounded text-sm select-none border ";
     let title = "";
 
@@ -738,7 +817,7 @@ async function toggleConfirm(row, isConfirm) {
   try {
     const result = await requestJsonp(isConfirm ? "confirm" : "cancel", row);
     if (!result.ok) throw new Error(result.error);
-    showToast(`Booking ${verb}ed successfully!`, "success");
+    showToast(`Booking ${verb.toLowerCase()}ed successfully!`, "success");
     await loadRecords(); 
     if (isConfirm) {
       const rec = records.find(r => Number(r._row) === Number(row));
@@ -753,21 +832,23 @@ function getCustomTemplate() { return localStorage.getItem("rentalEmailTemplate"
 
 function buildEmailContent(r) {
   const tpl = getCustomTemplate();
-  const estPrice = r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays)) : "—";
+  const estPrice = r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays, r.carId)) : "—";
   return tpl
-    .replace(/{name}/g, r.fullName || "Customer")
-    .replace(/{pickup}/g, formatDateTime(r.pickupDate))
-    .replace(/{return}/g, formatDateTime(r.returnDate))
-    .replace(/{days}/g, r.totalDays || "—")
-    .replace(/{vehicle}/g, `${r.vehicleModel || "Vehicle"} (${r.vehicleColor || ""}, Plate ${r.vehiclePlate || ""})`)
-    .replace(/{estimatedPrice}/g, estPrice);
+    .replace(/{name}/g, () => r.fullName || "Customer")
+    .replace(/{pickup}/g, () => formatDateTime(r.pickupDate))
+    .replace(/{return}/g, () => formatDateTime(r.returnDate))
+    .replace(/{days}/g, () => String(r.totalDays || "—"))
+    .replace(/{vehicle}/g, () => `${r.vehicleModel || "Vehicle"} (${r.vehicleColor || ""}, Plate ${r.vehiclePlate || ""})`)
+    .replace(/{estimatedPrice}/g, () => estPrice);
 }
 
 function openEmailModal(record) {
   const status = statusOf(record);
-  $("emailModalTitle").textContent = status === "Confirmed" ? "Resend Confirmation Email" : "Preview Email (Draft)";
+  const isConfirmed = status === "Confirmed";
+  $("emailModalTitle").textContent = isConfirmed ? "Resend Confirmation Email" : "Preview Email (Draft)";
   $("emailTo").value = record.email || "";
-  $("emailSubject").value = `Reservation confirmed — ${record.vehicleModel || "Vehicle"} for ${formatDateTime(record.pickupDate)}`;
+  const subjectPrefix = isConfirmed ? "Reservation confirmed" : "Reservation pending";
+  $("emailSubject").value = `${subjectPrefix} — ${record.vehicleModel || "Vehicle"} for ${formatDateTime(record.pickupDate)}`;
   $("emailBody").value = buildEmailContent(record);
   $("copyStatus").textContent = "";
   $("emailModal").classList.remove("hidden");
@@ -789,10 +870,17 @@ async function copyEmailToClipboard() {
 }
 
 function exportToCSV() {
-  if (!records.length) return showToast("No records to export.", "error");
+  const q = $("searchInput").value.trim().toLowerCase();
+  const filtered = records.filter(r => {
+    const matchCar = currentCarFilter === "all" || r.carId === currentCarFilter;
+    const matchStatus = currentFilter === "all" || statusOf(r).toLowerCase() === currentFilter;
+    const matchSearch = [r.fullName, r.contact, r.email, r.vehiclePlate, r.licenseNo].some(v => String(v || "").toLowerCase().includes(q));
+    return matchCar && matchStatus && matchSearch;
+  });
+  if (!filtered.length) return showToast("No records to export.", "error");
   const headers = ["Timestamp", "Full Name", "Email", "Phone", "Vehicle", "Pickup", "Return", "Days", "Est. Price", "Status"];
-  const rows = records.map(r => [
-    fmt(r.timestamp), r.fullName, r.email, r.contact, r.vehicleModel, fmt(r.pickupDate), fmt(r.returnDate), r.totalDays, calculateEstimatedPrice(r.totalDays), statusOf(r)
+  const rows = filtered.map(r => [
+    fmt(r.timestamp), r.fullName, r.email, r.contact, r.vehicleModel, fmt(r.pickupDate), fmt(r.returnDate), r.totalDays, calculateEstimatedPrice(r.totalDays, r.carId), statusOf(r)
   ]);
   const csvContent = [headers, ...rows].map(e => e.map(item => `"${String(item).replace(/"/g, '""')}"`).join(",")).join("\n");
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
@@ -860,6 +948,7 @@ function downloadAgreementPdf(r) {
   addField("Pick-up date/time", formatDateTime(r.pickupDate));
   addField("Return date/time", formatDateTime(r.returnDate));
   addField("Total rental days", r.totalDays); 
+  addField("Estimated price", r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays, r.carId)) : "—");
   addField("Odometer out (km)", r.odometerOut);
   addField("Fuel level out", r.fuelLevelOut); addField("Pre-existing damage", r.notes);
   
@@ -946,7 +1035,8 @@ document.addEventListener("DOMContentLoaded", () => {
         carId: $("newCarId").value.trim(),
         name: $("newCarName").value.trim(),
         plate: $("newCarPlate").value.trim(),
-        color: $("newCarColor").value.trim()
+        color: $("newCarColor").value.trim(),
+        baseRate: $("newCarBaseRate").value
       });
       if (res.ok) {
         showToast("Car added to fleet!", "success");
@@ -971,6 +1061,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!car) return;
 
     container.classList.remove("hidden");
+    $("editCarBaseRate").value = (car.baseRate !== undefined && car.baseRate !== null) ? car.baseRate : 2200;
     const currentFeatures = car.features || {};
 
     // Render Checkboxes
@@ -995,8 +1086,17 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!currentEditCarId) return;
     const btn = $("saveFeaturesBtn");
     const orig = btn.innerHTML;
-    btn.disabled = true; btn.innerHTML = "Saving...";
     $("editFeaturesStatus").textContent = "";
+    $("editFeaturesStatus").className = "text-sm text-center font-bold text-emerald-700";
+
+    const baseRate = Number($("editCarBaseRate").value);
+    if (isNaN(baseRate) || baseRate < 0) {
+      $("editFeaturesStatus").textContent = "❌ Please enter a valid base rate.";
+      $("editFeaturesStatus").className = "text-sm text-center font-bold text-red-600";
+      return;
+    }
+
+    btn.disabled = true; btn.innerHTML = "Saving...";
 
     const selectedFeatures = { performance: [], exterior: [], interior: [], technology: [], safety: [] };
     
@@ -1012,11 +1112,14 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       const res = await requestJsonp("updatecarfeatures", null, {
         carId: currentEditCarId,
-        features: featuresJson
+        features: featuresJson,
+        baseRate: baseRate
       });
       if (res.ok) {
-        $("editFeaturesStatus").textContent = "✅ Features saved successfully!";
-        await loadCars(); // Reload catalog to reflect changes immediately
+        $("editFeaturesStatus").textContent = "✅ Features & rate saved successfully!";
+        $("editFeaturesStatus").className = "text-sm text-center font-bold text-emerald-700";
+        await loadCars();
+        await loadRecords();
       } else {
         $("editFeaturesStatus").textContent = "❌ " + (res.error || "Failed to save");
         $("editFeaturesStatus").className = "text-sm text-center font-bold text-red-600";
