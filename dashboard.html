@@ -884,19 +884,16 @@ function buildEmailContent(r) {
     .replace(/{return}/g, () => formatDateTime(r.returnDate))
     .replace(/{days}/g, () => String(r.totalDays || "—"))
     .replace(/{vehicle}/g, () => `${r.vehicleModel || "Vehicle"} (${r.vehicleColor || ""}, Plate ${r.vehiclePlate || ""})`)
-    .replace(/{estimatedPrice}/g, () => estPrice);
-}
-
-function openEmailModal(record) {
-  const status = statusOf(record);
-  const isConfirmed = status === "Confirmed";
-  $("emailModalTitle").textContent = isConfirmed ? "Resend Confirmation Email" : "Preview Email (Draft)";
-  $("emailTo").value = record.email || "";
-  const subjectPrefix = isConfirmed ? "Reservation confirmed" : "Reservation pending";
-  $("emailSubject").value = `${subjectPrefix} — ${record.vehicleModel || "Vehicle"} for ${formatDateTime(record.pickupDate)}`;
-  $("emailBody").value = buildEmailContent(record);
-  $("copyStatus").textContent = "";
-  $("emailModal").classList.remove("hidden");
+    .replace(/{estimatedPrice}/g, () => estPrice)
+    // New placeholders added here:
+    .replace(/{odometer}/g, () => r.odometerOut || "—")
+    .replace(/{fuel}/g, () => r.fuelLevelOut || "—")
+    .replace(/{contact}/g, () => r.contact || "—")
+    .replace(/{address}/g, () => r.address || "—")
+    .replace(/{licenseNo}/g, () => r.licenseNo || "—")
+    .replace(/{notes}/g, () => r.notes || "—")
+    .replace(/{emergencyName}/g, () => r.emergencyName || "—")
+    .replace(/{emergencyPhone}/g, () => r.emergencyPhone || "—");
 }
 
 function closeEmailModal() { $("emailModal").classList.add("hidden"); }
