@@ -878,6 +878,10 @@ function getCustomTemplate() { return localStorage.getItem("rentalEmailTemplate"
 function buildEmailContent(r) {
   const tpl = getCustomTemplate();
   const estPrice = r.totalDays ? formatPrice(calculateEstimatedPrice(r.totalDays, r.carId)) : "—";
+  
+  // Helper to safely return a value or a dash if it's completely missing
+  const safe = (val) => (val !== undefined && val !== null && String(val).trim() !== "") ? val : "—";
+
   return tpl
     .replace(/{name}/g, () => r.fullName || "Customer")
     .replace(/{pickup}/g, () => formatDateTime(r.pickupDate))
@@ -885,23 +889,32 @@ function buildEmailContent(r) {
     .replace(/{days}/g, () => String(r.totalDays || "—"))
     .replace(/{vehicle}/g, () => `${r.vehicleModel || "Vehicle"} (${r.vehicleColor || ""}, Plate ${r.vehiclePlate || ""})`)
     .replace(/{estimatedPrice}/g, () => estPrice)
-    // New placeholders added here:
-    .replace(/{odometer}/g, () => r.odometerOut || "—")
-    .replace(/{fuel}/g, () => r.fuelLevelOut || "—")
-    .replace(/{contact}/g, () => r.contact || "—")
-    .replace(/{address}/g, () => r.address || "—")
-    .replace(/{licenseNo}/g, () => r.licenseNo || "—")
-    .replace(/{notes}/g, () => r.notes || "—")
-    .replace(/{emergencyName}/g, () => r.emergencyName || "—")
-    .replace(/{emergencyPhone}/g, () => r.emergencyPhone || "—");
+    // Safely handle placeholders so '0' doesn't turn into a dash
+    .replace(/{odometer}/g, () => safe(r.odometerOut))
+    .replace(/{fuel}/g, () => safe(r.fuelLevelOut))
+    .replace(/{contact}/g, () => safe(r.contact))
+    .replace(/{address}/g, () => safe(r.address))
+    .replace(/{licenseNo}/g, () => safe(r.licenseNo))
+    .replace(/{notes}/g, () => safe(r.notes))
+    .replace(/{emergencyName}/g, () => safe(r.emergencyName))
+    .replace(/{emergencyPhone}/g, () => safe(r.emergencyPhone));
+}
+
+function openEmailModal(record) {
+  const status = statusOf(record);
+  const isConfirmed = status === "Confirmed";
+  $("emailModalTitle").textContent = isConfirmed ? "Resend Confirmation Email" : "Preview Email (Draft)";
+  $("emailTo").value = record.email || "";
+  const subjectPrefix = isConfirmed ? "Reservation confirmed" : "Reservation pending";
+  $("emailSubject").value = `${subjectPrefix} — ${record.vehicleModel || "Vehicle"} for ${formatDateTime(record.pickupDate)}`;
+  $("emailBody").value = buildEmailContent(record);
+  $("copyStatus").textContent = "";
+  $("emailModal").classList.remove("hidden");
 }
 
 function closeEmailModal() { $("emailModal").classList.add("hidden"); }
 function closeSettingsModal() { $("settingsModal").classList.add("hidden"); }
 function closeManageCarsModal() { $("manageCarsModal").classList.add("hidden"); }
-
-async function copyEmailToClipboard() {
-  const text = `To: ${$("emailTo").value}\nSubject: ${$("emailSubject").value}\n\n${$("emailBody").value}`;
   try {
     await navigator.clipboard.writeText(text);
     $("copyStatus").textContent = "Copied to clipboard!";
