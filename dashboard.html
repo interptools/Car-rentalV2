@@ -342,25 +342,14 @@ const DEFAULT_DAILY_RATE = 2200;
 let dailyRate = Number(localStorage.getItem("rentalBaseRate")) || DEFAULT_DAILY_RATE;
 const DEFAULT_TEMPLATE = `Hi {name},\n\nGood news — your reservation for the {vehicle} is confirmed.\n\nPick-up: {pickup}\nReturn: {return}\nDays: {days}\nEst. Price: {estimatedPrice}\n\nThank you,\n[Your name]`;
 
-/**
- * Picks the grammatically correct indefinite article for a vehicle model name.
- * Handles the "MG is pronounced em-gee" case explicitly because the canonical
- * example in the owner's T&C spec uses "an MG ZS Lux 2025".
- */
 function getVehicleArticle(model) {
   const s = String(model || "").trim();
   if (!s) return "a";
-  if (/^MG/i.test(s)) return "an";       // MG, MG ZS, MG4 — all read "em-gee"
+  if (/^MG/i.test(s)) return "an";
   if ("aeiou".includes(s.charAt(0).toLowerCase())) return "an";
   return "a";
 }
 
-/**
- * Builds the T&Cs list for a specific rental record.
- * The Vehicle Details entry uses the record snapshot (not the live catalog)
- * because the PDF must reflect the car as it was at booking time — an admin
- * renaming or re-plating a car later must not rewrite historical agreements.
- */
 function buildTerms(record) {
   const r = record || {};
   const model = r.vehicleModel || "the vehicle";
@@ -622,13 +611,18 @@ function renderAll() {
   }).join("");
 
   document.querySelectorAll(".confirmBtn").forEach(b => b.addEventListener("click", () => toggleConfirm(b.dataset.row, b.dataset.confirm === "true")));
-  document.querySelectorAll(".pdfBtn").forEach(b => b.addEventListener("click", () => {
-    const rec = records.find(r => Number(r._row) === Number(b.dataset.row));
+  
+  document.querySelectorAll(".pdfBtn").forEach(b => b.addEventListener("click", (e) => {
+    e.preventDefault();
+    const rec = records.find(r => String(r._row) === String(b.getAttribute("data-row")));
     if (rec) downloadAgreementPdf(rec);
   }));
-  document.querySelectorAll(".emailBtn").forEach(b => b.addEventListener("click", () => {
-    const rec = records.find(r => Number(r._row) === Number(b.dataset.row));
+  
+  document.querySelectorAll(".emailBtn").forEach(b => b.addEventListener("click", (e) => {
+    e.preventDefault();
+    const rec = records.find(r => String(r._row) === String(b.getAttribute("data-row")));
     if (rec) openEmailModal(rec);
+    else showToast("Could not find record data. Please refresh.", "error");
   }));
 }
 
@@ -889,7 +883,6 @@ function buildEmailContent(r) {
     .replace(/{days}/g, () => String(r.totalDays || "—"))
     .replace(/{vehicle}/g, () => `${r.vehicleModel || "Vehicle"} (${r.vehicleColor || ""}, Plate ${r.vehiclePlate || ""})`)
     .replace(/{estimatedPrice}/g, () => estPrice)
-    // Safely handle placeholders so '0' doesn't turn into a dash
     .replace(/{odometer}/g, () => safe(r.odometerOut))
     .replace(/{fuel}/g, () => safe(r.fuelLevelOut))
     .replace(/{contact}/g, () => safe(r.contact))
@@ -915,7 +908,10 @@ function openEmailModal(record) {
 function closeEmailModal() { $("emailModal").classList.add("hidden"); }
 function closeSettingsModal() { $("settingsModal").classList.add("hidden"); }
 function closeManageCarsModal() { $("manageCarsModal").classList.add("hidden"); }
-  async function copyEmailToClipboard() {
+
+async function copyEmailToClipboard() {
+  const text = `To: ${$("emailTo").value}\nSubject: ${$("emailSubject").value}\n\n${$("emailBody").value}`;
+  try {
     await navigator.clipboard.writeText(text);
     $("copyStatus").textContent = "Copied to clipboard!";
     setTimeout(() => $("copyStatus").textContent = "", 3000);
