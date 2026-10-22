@@ -1,9 +1,8 @@
 <!doctype html>
 <!--
   ============================================================
-  CAR RENTAL — CUSTOMER FORM (DYNAMIC FLEET + FEATURES)
-  VERSION: 4.2.0
-  UPDATED: 2026-10-19
+  CAR RENTAL — CUSTOMER FORM (DYNAMIC FLEET + DYNAMIC FEATURES)
+  VERSION: 4.3.0
   ============================================================
 -->
 <html lang="en">
@@ -12,108 +11,24 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#0f172a">
   <title>Car Rental Agreement | Fleet</title>
-  
-  <!-- Cache control hints -->
-  <meta http-equiv="cache-control" content="no-cache, no-store, must-revalidate">
-  <meta http-equiv="pragma" content="no-cache">
-  <meta http-equiv="expires" content="0">
-
   <script src="https://cdn.tailwindcss.com"></script>
-  
   <style>
-    /* Base styles */
-    body { 
-      background: #f1f5f9; 
-    }
-    
-    .field { 
-      width: 100%; 
-      border: 1px solid #cbd5e1; 
-      border-radius: 0.6rem; 
-      padding: 0.65rem 0.75rem; 
-      background: white; 
-    }
-    
-    .field:focus { 
-      outline: 2px solid #38bdf8; 
-      outline-offset: 1px; 
-    }
-    
-    label { 
-      font-size: 0.875rem; 
-      font-weight: 600; 
-      color: #334155; 
-    }
-    
-    /* Ensure print shows full terms instead of the scrollable preview */
-    .terms-print { 
-      display: none; 
-    }
-    
+    body { background: #f1f5f9; }
+    .field { width: 100%; border: 1px solid #cbd5e1; border-radius: 0.6rem; padding: 0.65rem 0.75rem; background: white; }
+    .field:focus { outline: 2px solid #38bdf8; outline-offset: 1px; }
+    label { font-size: 0.875rem; font-weight: 600; color: #334155; }
+    .terms-scroll::-webkit-scrollbar { width: 6px; }
+    .terms-scroll::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 8px; }
+    .terms-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 8px; }
+    .terms-scroll::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     @media print {
-      #termsPreview { 
-        max-height: none !important; 
-        overflow: visible !important; 
-      }
-      .terms-print { 
-        display: block !important; 
-      }
+      #termsPreview { max-height: none !important; overflow: visible !important; }
+      #termsPreview section { page-break-inside: avoid; }
     }
-
-    /* Avoid page-break inside important sections when printing */
-    #termsPreview section { 
-      page-break-inside: avoid; 
-    }
-
-    /* Custom scrollbar for terms */
-    .terms-scroll::-webkit-scrollbar { 
-      width: 6px; 
-    }
-    .terms-scroll::-webkit-scrollbar-track { 
-      background: #f1f5f9; 
-      border-radius: 8px; 
-    }
-    .terms-scroll::-webkit-scrollbar-thumb { 
-      background: #cbd5e1; 
-      border-radius: 8px; 
-    }
-    .terms-scroll::-webkit-scrollbar-thumb:hover { 
-      background: #94a3b8; 
-    }
-
-    /* Small fixed control for forcing cache refresh */
-    #refreshAssetsBtn {
-      position: fixed;
-      right: 14px;
-      bottom: 14px;
-      background: #0ea5e9;
-      color: #012;
-      z-index: 9999;
-      border-radius: 10px;
-      padding: 8px 12px;
-      border: none;
-      cursor: pointer;
-      box-shadow: 0 6px 18px rgba(2,6,23,0.08);
-      font-size: 12px;
-    }
-    
-    .ver { 
-      font-family: ui-monospace, monospace; 
-      font-size: 10px; 
-      color: #64748b; 
-    }
-    
-    .feature-item { 
-      display: flex; 
-      align-items: flex-start; 
-      gap: 0.5rem; 
-    }
-    
-    .feature-icon { 
-      color: #0ea5e9; 
-      flex-shrink: 0; 
-      margin-top: 2px; 
-    }
+    #refreshAssetsBtn { position: fixed; right: 14px; bottom: 14px; background: #0ea5e9; color: #012; z-index: 9999; border-radius: 10px; padding: 8px 12px; border: none; cursor: pointer; box-shadow: 0 6px 18px rgba(2,6,23,0.08); font-size: 12px; }
+    .ver { font-family: ui-monospace, monospace; font-size: 10px; color: #64748b; }
+    .feature-item { display: flex; align-items: flex-start; gap: 0.5rem; }
+    .feature-icon { color: #0ea5e9; flex-shrink: 0; margin-top: 2px; }
   </style>
 </head>
 <body class="text-slate-800">
@@ -128,7 +43,6 @@
 
   <main class="max-w-5xl mx-auto p-4 md:py-8">
     
-    <!-- Vehicle Selection Dropdown -->
     <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6 p-6">
       <label for="carSelect" class="block text-lg font-bold mb-2 text-sky-700">Select Vehicle</label>
       <select id="carSelect" class="field font-bold text-lg bg-sky-50 border-sky-300" disabled>
@@ -136,11 +50,10 @@
       </select>
     </section>
 
-    <!-- Vehicle Info Card (Dynamic) -->
     <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
       <div class="grid md:grid-cols-[180px_1fr]">
         <div class="flex items-center justify-center p-2 bg-white">
-          <img id="carImage" src="images/mg_zs.jpg" alt="Vehicle" class="w-full h-auto object-contain rounded-lg shadow-sm">
+          <img id="carImage" src="images/mg_zs.jpg" onerror="this.src='https://placehold.co/400x300?text=No+Image'" alt="Vehicle" class="w-full h-auto object-contain rounded-lg shadow-sm">
         </div>
         <div class="p-6">
           <p class="text-xs uppercase tracking-widest text-slate-500 font-bold">Rental vehicle</p>
@@ -154,45 +67,33 @@
       </div>
     </div>
 
-    <!-- Vehicle Features Section (DYNAMIC) -->
+    <!-- Features Section -->
     <section class="bg-white border border-slate-200 rounded-2xl p-5 md:p-7 shadow-sm mb-6">
       <h2 class="text-lg font-bold mb-4" id="featuresTitle">Vehicle — Key Features</h2>
       <div class="grid md:grid-cols-2 gap-x-8 gap-y-6">
-        
-        <!-- Performance -->
         <div id="section-performance">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">⚙️ Performance</h3>
           <ul class="space-y-2 text-sm text-slate-700" id="features-performance"></ul>
         </div>
-
-        <!-- Exterior -->
         <div id="section-exterior">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">🚙 Exterior</h3>
           <ul class="space-y-2 text-sm text-slate-700" id="features-exterior"></ul>
         </div>
-
-        <!-- Interior & Comfort -->
         <div id="section-interior">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">🪑 Interior & Comfort</h3>
           <ul class="space-y-2 text-sm text-slate-700" id="features-interior"></ul>
         </div>
-
-        <!-- Technology -->
         <div id="section-technology">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">📱 Technology</h3>
           <ul class="space-y-2 text-sm text-slate-700" id="features-technology"></ul>
         </div>
-
-        <!-- Safety -->
         <div class="md:col-span-2" id="section-safety">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">🛡️ Safety</h3>
           <ul class="grid sm:grid-cols-2 gap-2 text-sm text-slate-700" id="features-safety"></ul>
         </div>
-
       </div>
     </section>
 
-    <!-- Availability Calendar Section -->
     <section class="bg-white border border-slate-200 rounded-2xl p-5 md:p-7 shadow-sm mb-6">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
         <div>
@@ -207,11 +108,9 @@
       </div>
       
       <p id="calMonthLabel" class="text-center font-semibold text-slate-800 mb-2"></p>
-      
       <div class="grid grid-cols-7 gap-1 text-center text-xs text-slate-500 mb-1">
         <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
       </div>
-      
       <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
       
       <div class="flex flex-wrap gap-4 mt-4 text-xs text-slate-600">
@@ -231,41 +130,17 @@
       <p id="calStatus" class="text-xs text-slate-500 mt-3" role="status" aria-live="polite"></p>
     </section>
 
-    <!-- Main Form -->
     <form id="rentalForm" class="space-y-6">
-      
-      <!-- Section 1: Renter Info -->
       <section class="bg-white border border-slate-200 rounded-2xl p-5 md:p-7 shadow-sm">
         <h2 class="text-lg font-bold mb-4">1. Renter information</h2>
         <div class="grid md:grid-cols-2 gap-4">
-          <div>
-            <label for="fullName">Full legal name *</label>
-            <input class="field mt-1" id="fullName" name="fullName" autocomplete="name" required maxlength="150">
-          </div>
-          <div>
-            <label for="contact">Contact number *</label>
-            <input class="field mt-1" id="contact" name="contact" type="tel" autocomplete="tel" required maxlength="40">
-          </div>
-          <div class="md:col-span-2">
-            <label for="address">Residential address *</label>
-            <textarea class="field mt-1" id="address" name="address" autocomplete="street-address" rows="2" required maxlength="1000"></textarea>
-          </div>
-          <div>
-            <label for="email">Email address *</label>
-            <input class="field mt-1" id="email" name="email" type="email" autocomplete="email" required maxlength="254">
-          </div>
-          <div>
-            <label for="dob">Date of birth *</label>
-            <input class="field mt-1" id="dob" name="dob" type="date" required>
-          </div>
-          <div>
-            <label for="licenseNo">Driver's license number *</label>
-            <input class="field mt-1" id="licenseNo" name="licenseNo" required maxlength="80">
-          </div>
-          <div>
-            <label for="licenseExpiry">Driver's license expiry *</label>
-            <input class="field mt-1" id="licenseExpiry" name="licenseExpiry" type="date" required>
-          </div>
+          <div><label for="fullName">Full legal name *</label><input class="field mt-1" id="fullName" name="fullName" autocomplete="name" required maxlength="150"></div>
+          <div><label for="contact">Contact number *</label><input class="field mt-1" id="contact" name="contact" type="tel" autocomplete="tel" required maxlength="40"></div>
+          <div class="md:col-span-2"><label for="address">Residential address *</label><textarea class="field mt-1" id="address" name="address" autocomplete="street-address" rows="2" required maxlength="1000"></textarea></div>
+          <div><label for="email">Email address *</label><input class="field mt-1" id="email" name="email" type="email" autocomplete="email" required maxlength="254"></div>
+          <div><label for="dob">Date of birth *</label><input class="field mt-1" id="dob" name="dob" type="date" required></div>
+          <div><label for="licenseNo">Driver's license number *</label><input class="field mt-1" id="licenseNo" name="licenseNo" required maxlength="80"></div>
+          <div><label for="licenseExpiry">Driver's license expiry *</label><input class="field mt-1" id="licenseExpiry" name="licenseExpiry" type="date" required></div>
           <div>
             <label for="govIdType">Government ID type *</label>
             <select class="field mt-1" id="govIdType" name="govIdType" required>
@@ -299,64 +174,28 @@
               <option>Other</option>
             </select>
           </div>
-          <div>
-            <label for="govIdNumber">Government ID number *</label>
-            <input class="field mt-1" id="govIdNumber" name="govIdNumber" required maxlength="100">
-          </div>
-          <div>
-            <label for="emergencyName">Emergency contact name *</label>
-            <input class="field mt-1" id="emergencyName" name="emergencyName" required maxlength="150">
-          </div>
-          <div>
-            <label for="emergencyPhone">Emergency contact number *</label>
-            <input class="field mt-1" id="emergencyPhone" name="emergencyPhone" type="tel" required maxlength="40">
-          </div>
+          <div><label for="govIdNumber">Government ID number *</label><input class="field mt-1" id="govIdNumber" name="govIdNumber" required maxlength="100"></div>
+          <div><label for="emergencyName">Emergency contact name *</label><input class="field mt-1" id="emergencyName" name="emergencyName" required maxlength="150"></div>
+          <div><label for="emergencyPhone">Emergency contact number *</label><input class="field mt-1" id="emergencyPhone" name="emergencyPhone" type="tel" required maxlength="40"></div>
         </div>
       </section>
 
-      <!-- Section 2: Rental Condition -->
       <section class="bg-white border border-slate-200 rounded-2xl p-5 md:p-7 shadow-sm">
         <h2 class="text-lg font-bold mb-4">2. Rental and vehicle condition</h2>
         <div class="grid md:grid-cols-2 gap-4">
-          <div>
-            <label for="pickupDate">Pick-up date and time (PHT) *</label>
-            <input class="field mt-1" id="pickupDate" name="pickupDate" type="datetime-local" required>
-          </div>
-          <div>
-            <label for="returnDate">Return date and time (PHT) *</label>
-            <input class="field mt-1" id="returnDate" name="returnDate" type="datetime-local" required>
-          </div>
-          <div>
-            <label for="totalDays">Total rental days (calculated) *</label>
-            <input class="field mt-1 bg-slate-50" id="totalDays" name="totalDays" type="number" min="1" step="0.5" readonly required>
-          </div>
-          <div>
-            <label for="odometerOut">Odometer out (km) *</label>
-            <input class="field mt-1" id="odometerOut" name="odometerOut" type="number" min="0" step="1" required>
-          </div>
-          <div>
-            <label for="fuelLevelOut">Fuel level out *</label>
-            <select class="field mt-1" id="fuelLevelOut" name="fuelLevelOut" required>
-              <option value="">Select fuel level</option>
-              <option>Full</option>
-              <option>3/4</option>
-              <option>1/2</option>
-              <option>1/4</option>
-              <option>Empty</option>
-            </select>
-          </div>
-          <div>
-            <label for="notes">Pre-existing damage / notes</label>
-            <textarea class="field mt-1" id="notes" name="notes" rows="2" maxlength="1000" placeholder="Describe existing scratches, dents, or equipment issues."></textarea>
-          </div>
+          <div><label for="pickupDate">Pick-up date and time (PHT) *</label><input class="field mt-1" id="pickupDate" name="pickupDate" type="datetime-local" required></div>
+          <div><label for="returnDate">Return date and time (PHT) *</label><input class="field mt-1" id="returnDate" name="returnDate" type="datetime-local" required></div>
+          <div><label for="totalDays">Total rental days (calculated) *</label><input class="field mt-1 bg-slate-50" id="totalDays" name="totalDays" type="number" min="1" step="0.5" readonly required></div>
+          <div><label for="odometerOut">Odometer out (km) *</label><input class="field mt-1" id="odometerOut" name="odometerOut" type="number" min="0" step="1" required></div>
+          <div><label for="fuelLevelOut">Fuel level out *</label><select class="field mt-1" id="fuelLevelOut" name="fuelLevelOut" required><option value="">Select fuel level</option><option>Full</option><option>3/4</option><option>1/2</option><option>1/4</option><option>Empty</option></select></div>
+          <div><label for="notes">Pre-existing damage / notes</label><textarea class="field mt-1" id="notes" name="notes" rows="2" maxlength="1000" placeholder="Describe existing scratches, dents, or equipment issues."></textarea></div>
         </div>
+        <p class="text-xs text-slate-500 mt-3">Rental days are calculated as elapsed time rounded up to a whole day. Confirm the agreed billing rule with the owner if a different rule applies.</p>
       </section>
 
-      <!-- Section 3: Terms -->
       <section class="bg-white border border-slate-200 rounded-2xl p-5 md:p-7 shadow-sm">
         <h2 class="text-lg font-bold mb-3">3. Rental agreement terms</h2>
         <p class="text-sm text-slate-600 mb-4">Read the terms below. These are a starter template and should be reviewed for your actual rental operation and applicable Philippine law before use.</p>
-        
         <div id="termsPreview" class="terms-scroll space-y-4 text-sm leading-6 border border-slate-200 rounded-xl p-4 bg-slate-50 max-h-64 overflow-y-auto">
           <section><h3 class="font-bold text-slate-900">Vehicle Details</h3><p class="text-slate-700">The rented vehicle must be inspected by the renter before departure. Any pre-existing damage must be reported immediately.</p></section>
           <section><h3 class="font-bold text-slate-900">Rental Period</h3><p class="text-slate-700">The rental begins at the agreed pick-up date and time and ends at the agreed return date and time. Extensions require prior written approval.</p></section>
@@ -384,9 +223,7 @@
       </div>
 
       <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
-        <button id="submitBtn" type="submit" class="rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white font-bold px-6 py-3 min-w-[200px] transition-colors">
-          Submit rental details
-        </button>
+        <button id="submitBtn" type="submit" class="rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white font-bold px-6 py-3 min-w-[200px] transition-colors">Submit rental details</button>
         <p id="formStatus" role="status" aria-live="polite" class="text-sm text-slate-600"></p>
       </div>
     </form>
@@ -397,7 +234,6 @@
     </footer>
   </main>
 
-  <!-- PRIVACY MODAL -->
   <div id="privacyModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center mb-4">
@@ -423,7 +259,6 @@
     </div>
   </div>
 
-  <!-- SUCCESS MODAL -->
   <div id="successModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
       <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
@@ -441,31 +276,10 @@
   <button id="refreshAssetsBtn" title="Clear caches and reload">Refresh assets</button>
 
 <script>
-/* ============================================================================
-   CUSTOMER FORM + AVAILABILITY CALENDAR — DYNAMIC FLEET (v4.2.0)
-   ============================================================================ */
-const APP_VERSION = "4.2.0";
+const APP_VERSION = "4.3.0";
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwcRkc6qj9XHTKV6gdZv1rAKHtxr1hugiPd7-QaT-0H-VR_aGF09dL8sAq9syrtAna/exec";
 const PH_TIMEZONE = "Asia/Manila";
 const BUFFER_MINUTES = 60;
-
-// 🚗 ADD FEATURES FOR YOUR CARS HERE
-const CAR_FEATURES = {
-  "mg_zs": {
-    performance: ["1.5L Naturally Aspirated 4-Cylinder Engine", "110 PS Power / 142 Nm Torque", "CVT Transmission with Manual Tiptronic Mode", "Front-Wheel Drive (FWD)"],
-    exterior: ["17-inch Two-Tone Tomahawk Design Alloy Wheels", "London-Eye Halogen Projector Headlamps", "Stardust Grille Design", "Panoramic Sunroof"],
-    interior: ["Leather Style Interior", "Power-Adjustable Driver Seat", "Automatic Climate Control", "Large Boot Space (443L / 1,457L with seats folded)"],
-    technology: ["10.25-inch Floating Touchscreen Infotainment", "Apple CarPlay & Android Auto", "7-inch Digital Instrument Cluster", "Reverse Camera & Rear Parking Sensors"],
-    safety: ["Dual Front, Side & Curtain Airbags", "ABS with EBD", "Hill Start Assist", "Tire Pressure Monitoring System", "Engine Immobilizer & Security Alarm", "Speed-Sensing Door Locks"]
-  },
-  "toyota_vios": {
-    performance: ["1.3L Dual VVT-i Engine", "98 PS Power / 122 Nm Torque", "CVT Transmission", "Front-Wheel Drive (FWD)"],
-    exterior: ["15-inch Alloy Wheels", "LED Headlamps", "Chrome Grille", "Power Adjustable Side Mirrors"],
-    interior: ["Fabric Interior", "Manual Air Conditioning", "Push Start Button", "Large Trunk Space (326L)"],
-    technology: ["7-inch Touchscreen Display", "Apple CarPlay & Android Auto", "Bluetooth Connectivity", "Reverse Camera"],
-    safety: ["Dual Front Airbags", "ABS with EBD", "Vehicle Stability Control", "Hill Start Assist", "Seatbelt Reminders"]
-  }
-};
 
 let currentCarId = "";
 let carCatalog = [];
@@ -474,38 +288,30 @@ function formatPhilippineDate(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: PH_TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" });
   return formatter.format(date).replace(/\//g, "-");
 }
-
 function formatPhilippineDateTime(date = new Date()) {
   const formatter = new Intl.DateTimeFormat("sv-SE", { timeZone: PH_TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
-  const parts = formatter.formatToParts(date);
-  const values = {};
+  const parts = formatter.formatToParts(date); const values = {};
   for (let i = 0; i < parts.length; i++) { if (parts[i].type !== "literal") values[parts[i].type] = parts[i].value; }
   return `${values.year}-${values.month}-${values.day}T${values.hour}:${values.minute}:${values.second}`;
 }
-
 function addManilaOffsetToLocal(local) {
-  if (!local) return "";
-  const s = String(local).trim();
+  if (!local) return ""; const s = String(local).trim();
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(s)) return s + ":00+08:00";
   if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(s)) return s + "+08:00";
   return s;
 }
-
 function manilaDateKey(date) {
   const formatter = new Intl.DateTimeFormat("en-CA", { timeZone: PH_TIMEZONE, year: "numeric", month: "2-digit", day: "2-digit" });
   return formatter.format(date);
 }
-
 function escapeHtml(value) {
   const str = String(value);
   return str.replace(/[&<>"']/g, function(ch) {
     if (ch === "&") return "&amp;"; if (ch === "<") return "&lt;"; if (ch === ">") return "&gt;"; if (ch === '"') return "&quot;"; if (ch === "'") return "&#39;"; return ch;
   });
 }
-
 function formatFriendlyDateTime(isoStr) {
-  if (!isoStr) return "";
-  const d = new Date(isoStr); if (isNaN(d)) return "";
+  if (!isoStr) return ""; const d = new Date(isoStr); if (isNaN(d)) return "";
   return d.toLocaleString("en-PH", { timeZone: PH_TIMEZONE, month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
 }
 
@@ -537,29 +343,15 @@ async function loadCars() {
     const result = await requestJsonp("getcars");
     if (result && Array.isArray(result.cars)) {
       carCatalog = result.cars;
-      if (carCatalog.length === 0) {
-        select.innerHTML = '<option value="">No cars available</option>';
-        return;
-      }
-      
+      if (carCatalog.length === 0) { select.innerHTML = '<option value="">No cars available</option>'; return; }
       select.innerHTML = "";
       carCatalog.forEach(function(car) {
-        const opt = document.createElement("option");
-        opt.value = car.id;
-        opt.textContent = car.name;
-        select.appendChild(opt);
+        const opt = document.createElement("option"); opt.value = car.id; opt.textContent = car.name; select.appendChild(opt);
       });
-      
-      select.disabled = false;
-      currentCarId = carCatalog[0].id;
-      select.value = currentCarId;
-      updateCarDisplay();
-      loadAvailability();
+      select.disabled = false; currentCarId = carCatalog[0].id; select.value = currentCarId;
+      updateCarDisplay(); loadAvailability();
     }
-  } catch (err) {
-    console.error("Failed to load cars", err);
-    select.innerHTML = '<option value="">Error loading cars</option>';
-  }
+  } catch (err) { console.error("Failed to load cars", err); select.innerHTML = '<option value="">Error loading cars</option>'; }
 }
 
 async function loadAvailability() {
@@ -606,11 +398,7 @@ function getDayBookingStatus(dateKey) {
   for (let i = 0; i < intervals.length; i++) {
     let interval = intervals[i];
     if (merged.length === 0) merged.push(interval);
-    else {
-      let last = merged[merged.length - 1];
-      if (interval[0] <= last[1] + 1) last[1] = Math.max(last[1], interval[1]);
-      else merged.push(interval);
-    }
+    else { let last = merged[merged.length - 1]; if (interval[0] <= last[1] + 1) last[1] = Math.max(last[1], interval[1]); else merged.push(interval); }
   }
   if (merged.length === 1 && merged[0][0] <= 0 && merged[0][1] >= 1440) return 'full';
   return 'partial';
@@ -632,8 +420,7 @@ function rangeOverlapsBlocked(startIso, endIso) {
   if (isNaN(s) || isNaN(e) || e <= s) return false;
   const bufferMs = BUFFER_MINUTES * 60000;
   for (let i = 0; i < availabilityRanges.length; i++) {
-    const range = availabilityRanges[i];
-    const rs = new Date(range.start).getTime(); const re = new Date(range.end).getTime();
+    const range = availabilityRanges[i]; const rs = new Date(range.start).getTime(); const re = new Date(range.end).getTime();
     if (isNaN(rs) || isNaN(re)) continue;
     if (s < (re + bufferMs) && e > (rs - bufferMs)) return true;
   }
@@ -716,30 +503,20 @@ function getRentalDays() {
 function collectFormData(form) {
   const data = Object.fromEntries(new FormData(form).entries());
   const car = carCatalog.find(c => c.id === currentCarId) || { name: "Unknown", plate: "", color: "" };
-  
-  data.pickupDate = addManilaOffsetToLocal(data.pickupDate); 
-  data.returnDate = addManilaOffsetToLocal(data.returnDate);
+  data.pickupDate = addManilaOffsetToLocal(data.pickupDate); data.returnDate = addManilaOffsetToLocal(data.returnDate);
   data.timestamp = addManilaOffsetToLocal(formatPhilippineDateTime(new Date()));
   data.submittedAt = addManilaOffsetToLocal(formatPhilippineDateTime(new Date()));
   data.agreementAccepted = document.getElementById("agreementAccepted").checked ? "Yes" : "No";
-  
-  data.vehicleModel = car.name; 
-  data.vehiclePlate = car.plate; 
-  data.vehicleColor = car.color; 
-  data.carId = currentCarId;
-  
-  data.termsVersion = "1.0";
-  return data;
+  data.vehicleModel = car.name; data.vehiclePlate = car.plate; data.vehicleColor = car.color; data.carId = currentCarId;
+  data.termsVersion = "1.0"; return data;
 }
 
 async function submitRental(event) {
   event.preventDefault();
   const form = event.currentTarget; const status = document.getElementById("formStatus"); const button = document.getElementById("submitBtn");
   const originalBtnHTML = button.innerHTML; const days = getRentalDays();
-  
   if (!form.reportValidity()) return;
   if (!days) { status.textContent = "Return date/time must be later."; status.className = "text-sm text-red-700"; return; }
-  
   const payload = collectFormData(form);
   if (rangeOverlapsBlocked(payload.pickupDate, payload.returnDate)) { status.textContent = "Overlap detected. Please adjust."; status.className = "text-sm text-red-700 font-semibold"; return; }
   
@@ -749,8 +526,7 @@ async function submitRental(event) {
   try {
     await fetch(APPS_SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     form.reset(); document.getElementById("totalDays").value = ""; document.getElementById("bookingSummary").classList.add("hidden");
-    renderCalendar(); checkDatesAgainstAvailability();
-    document.getElementById("successModal").classList.remove("hidden");
+    renderCalendar(); checkDatesAgainstAvailability(); document.getElementById("successModal").classList.remove("hidden");
   } catch (error) {
     status.textContent = "Submission failed. Check your connection."; status.className = "text-sm text-red-700";
   } finally { button.disabled = false; button.innerHTML = originalBtnHTML; }
@@ -760,7 +536,6 @@ function updateCarDisplay() {
   const car = carCatalog.find(c => c.id === currentCarId);
   if (!car) return;
   
-  // 1. Update Image & Basic Info
   const imagePath = "images/" + car.id + ".jpg";
   document.getElementById("carImage").src = imagePath;
   document.getElementById("carImage").alt = car.name;
@@ -768,45 +543,37 @@ function updateCarDisplay() {
   document.getElementById("carPlate").textContent = car.plate || "N/A";
   document.getElementById("carColor").textContent = car.color || "N/A";
 
-  // 2. Update Features
   document.getElementById("featuresTitle").textContent = car.name + " — Key Features";
   
-  const features = CAR_FEATURES[currentCarId];
+  const features = car.features;
   
-  if (!features) {
-    // If features aren't defined in the code for this new car, hide the lists
+  if (!features || Object.keys(features).length === 0) {
     ["performance", "exterior", "interior", "technology", "safety"].forEach(cat => {
       document.getElementById("features-" + cat).innerHTML = '<li class="text-slate-400 italic">Features not listed yet.</li>';
     });
     return;
   }
 
-  // Helper to render list
   const renderList = (id, items) => {
     const el = document.getElementById("features-" + id);
-    if (!el || !items) return;
+    if (!el) return;
+    if (!items || items.length === 0) { el.innerHTML = ''; document.getElementById("section-" + id).style.display = 'none'; return; }
+    document.getElementById("section-" + id).style.display = 'block';
     el.innerHTML = items.map(item => `<li class="feature-item"><span class="feature-icon">▪</span> ${escapeHtml(item)}</li>`).join("");
   };
-
-  renderList("performance", features.performance);
+  
+  renderList("performance", features.performance); 
   renderList("exterior", features.exterior);
-  renderList("interior", features.interior);
+  renderList("interior", features.interior); 
   renderList("technology", features.technology);
   renderList("safety", features.safety);
 }
 
 document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("appVersion").textContent = APP_VERSION;
-  
   const select = document.getElementById("carSelect");
-  select.addEventListener("change", function(e) {
-    currentCarId = e.target.value;
-    updateCarDisplay();
-    loadAvailability(); 
-  });
-
-  loadCars(); // Fetch cars from backend
-  initCalendar();
+  select.addEventListener("change", function(e) { currentCarId = e.target.value; updateCarDisplay(); loadAvailability(); });
+  loadCars(); initCalendar();
   
   const form = document.getElementById("rentalForm");
   form.addEventListener("submit", submitRental);
@@ -819,7 +586,6 @@ document.addEventListener("DOMContentLoaded", function() {
   document.getElementById("licenseExpiry").min = formatPhilippineDate(new Date());
 
   document.getElementById("closeSuccessModal").addEventListener("click", function() { document.getElementById("successModal").classList.add("hidden"); });
-  
   const privacyModal = document.getElementById("privacyModal");
   document.getElementById("openPrivacyBtn").addEventListener("click", function() { privacyModal.classList.remove("hidden"); });
   document.getElementById("closePrivacyBtn").addEventListener("click", function() { privacyModal.classList.add("hidden"); });
