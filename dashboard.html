@@ -1,9 +1,8 @@
 <!doctype html>
 <!--
   ============================================================
-  CAR RENTAL — OWNER DASHBOARD (FLEET VERSION)
-  VERSION: 4.1.0 (Dynamic Fleet Management)
-  UPDATED: 2026-10-19
+  CAR RENTAL — OWNER DASHBOARD (FLEET + FEATURES MANAGER)
+  VERSION: 4.3.0
   ============================================================
 -->
 <html lang="en">
@@ -11,7 +10,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="app-version" content="4.1.0">
+  <meta name="app-version" content="4.3.0">
   <title>Owner Dashboard | Fleet</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -39,7 +38,7 @@
         <p class="text-slate-300 text-sm mt-1">Manage rental records and download agreements.</p>
       </div>
       <div class="flex gap-2">
-        <button id="manageCarsBtn" class="hidden rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 font-semibold">🚗 Manage Cars</button>
+        <button id="manageCarsBtn" class="hidden rounded-lg bg-indigo-600 hover:bg-indigo-700 px-4 py-2 font-semibold">🚗 Manage Fleet & Features</button>
         <button id="settingsBtn" class="hidden rounded-lg bg-slate-700 hover:bg-slate-600 px-4 py-2 font-semibold">⚙️ Settings</button>
         <button id="refreshBtn" class="hidden rounded-lg bg-sky-600 hover:bg-sky-700 px-4 py-2 font-semibold">Refresh</button>
         <button id="logoutBtn" class="hidden rounded-lg bg-red-600 hover:bg-red-700 px-4 py-2 font-semibold">Lock</button>
@@ -49,7 +48,6 @@
 
   <main class="max-w-7xl mx-auto p-4 md:py-8">
     
-    <!-- Gate / Login -->
     <div id="gate" class="max-w-xl mx-auto bg-white border border-slate-200 rounded-2xl shadow-sm p-6 mt-10">
       <h2 class="text-xl font-bold text-center">Owner Sign-In</h2>
       <p class="text-sm text-slate-600 mt-2 text-center">Enter the dashboard key configured in Google Apps Script.</p>
@@ -67,10 +65,8 @@
       </form>
     </div>
 
-    <!-- Dashboard Content -->
     <section id="dashboard" class="hidden space-y-6">
       
-      <!-- Top Stats -->
       <div class="grid sm:grid-cols-4 gap-4">
         <div class="bg-white border border-slate-200 rounded-xl p-4">
           <p class="text-sm text-slate-500">Total Records</p>
@@ -90,10 +86,8 @@
         </div>
       </div>
 
-      <!-- Calendar & Availability Grid -->
       <div class="grid lg:grid-cols-2 gap-4">
         
-        <!-- Mini Calendar -->
         <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm">
           <div class="flex justify-between items-center mb-4 border-b pb-2">
             <h2 class="font-bold text-lg">Bookings Calendar</h2>
@@ -115,7 +109,6 @@
           <div id="miniCalendarGrid" class="grid grid-cols-7 gap-1 text-sm text-center"></div>
         </div>
 
-        <!-- Partial Availability Analysis -->
         <div id="partialAvailabilitySection" class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hidden flex-col">
           <div class="border-b pb-2 mb-3">
             <h2 class="font-bold text-lg">Partial Dates: Free Time Slots</h2>
@@ -125,12 +118,10 @@
         </div>
       </div>
 
-      <!-- Table Controls -->
       <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
         <div class="p-4 border-b border-slate-200 flex flex-col md:flex-row gap-4 justify-between items-center bg-slate-50">
           <div class="flex flex-wrap gap-2 w-full md:w-auto items-center">
             
-            <!-- DYNAMIC CAR FILTER -->
             <select id="carFilter" class="field font-bold text-sm bg-white border-slate-300 py-2">
               <option value="all">All Cars</option>
             </select>
@@ -151,7 +142,6 @@
 
         <div class="p-2 text-sm text-slate-500" id="loadStatus">Loaded 0 records.</div>
 
-        <!-- Desktop Table -->
         <div class="overflow-x-auto desktop-table">
           <table class="min-w-[1000px] w-full text-sm">
             <thead class="bg-white text-slate-600 border-b">
@@ -168,58 +158,92 @@
             <tbody id="recordsBody"><tr><td colspan="7" class="text-center py-4">No records found.</td></tr></tbody>
           </table>
         </div>
-
-        <!-- Mobile Cards -->
         <div id="mobileCardsContainer" class="p-4 space-y-4 mobile-card"></div>
-
       </div>
     </section>
   </main>
 
   <!-- ========================================== -->
-  <!-- MANAGE CARS MODAL                          -->
+  <!-- MANAGE CARS & FEATURES MODAL               -->
   <!-- ========================================== -->
   <div id="manageCarsModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
+    <div class="bg-white rounded-2xl max-w-4xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center mb-4 border-b pb-2">
-        <h3 class="text-xl font-bold text-indigo-700">🚗 Manage Fleet</h3>
+        <h3 class="text-xl font-bold text-indigo-700">🚗 Manage Fleet & Features</h3>
         <button id="closeManageCarsBtn" class="text-slate-400 hover:text-slate-800 text-2xl">&times;</button>
       </div>
       
-      <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-lg text-sm text-indigo-800 mb-4">
-        <strong>Note:</strong> To add a picture, upload a JPG file to your GitHub <code>images/</code> folder named exactly like the Car ID you create here (e.g., <code>toyota_vios.jpg</code>).
+      <div class="grid md:grid-cols-2 gap-6 overflow-y-auto pr-2">
+        
+        <!-- Left Column: Add New Car -->
+        <div class="space-y-4 border-r border-slate-200 pr-0 md:pr-6">
+          <h4 class="font-bold text-slate-800 text-lg">Add New Car</h4>
+          <form id="addCarForm" class="space-y-3">
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Car ID (lowercase, no spaces) *</label>
+              <input type="text" id="newCarId" class="field" placeholder="e.g., toyota_vios" required>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-600 mb-1">Car Name *</label>
+              <input type="text" id="newCarName" class="field" placeholder="e.g., Toyota Vios 2024" required>
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Plate Number</label>
+                <input type="text" id="newCarPlate" class="field" placeholder="e.g., ABC 1234">
+              </div>
+              <div>
+                <label class="block text-xs font-bold text-slate-600 mb-1">Color</label>
+                <input type="text" id="newCarColor" class="field" placeholder="e.g., White">
+              </div>
+            </div>
+            <button type="submit" class="w-full rounded-lg bg-indigo-600 text-white font-bold py-2 hover:bg-indigo-700 mt-2">Add Car</button>
+          </form>
+          <div class="bg-indigo-50 border border-indigo-200 p-3 rounded-lg text-xs text-indigo-800 mt-4">
+            <strong>Picture Upload:</strong> After adding a car, upload its picture to your GitHub <code>images/</code> folder and name it exactly <code>[car-id].jpg</code>.
+          </div>
+        </div>
+
+        <!-- Right Column: Edit Features -->
+        <div class="space-y-4">
+          <h4 class="font-bold text-slate-800 text-lg">Edit Car Features</h4>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Select Car to Edit</label>
+            <select id="editCarSelect" class="field font-bold text-sm bg-white border-slate-300">
+              <option value="">Select a car...</option>
+            </select>
+          </div>
+
+          <div id="featuresEditorContainer" class="hidden space-y-4">
+            <div id="edit-performance" class="feature-group">
+              <h5 class="font-bold text-sm text-slate-700 mb-1 border-b pb-1">⚙️ Performance</h5>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs"></div>
+            </div>
+            <div id="edit-exterior" class="feature-group">
+              <h5 class="font-bold text-sm text-slate-700 mb-1 border-b pb-1">🚙 Exterior</h5>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs"></div>
+            </div>
+            <div id="edit-interior" class="feature-group">
+              <h5 class="font-bold text-sm text-slate-700 mb-1 border-b pb-1">🪑 Interior</h5>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs"></div>
+            </div>
+            <div id="edit-technology" class="feature-group">
+              <h5 class="font-bold text-sm text-slate-700 mb-1 border-b pb-1">📱 Technology</h5>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs"></div>
+            </div>
+            <div id="edit-safety" class="feature-group">
+              <h5 class="font-bold text-sm text-slate-700 mb-1 border-b pb-1">🛡️ Safety</h5>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 text-xs"></div>
+            </div>
+            
+            <button id="saveFeaturesBtn" class="w-full rounded-lg bg-emerald-600 text-white font-bold py-2 hover:bg-emerald-700 mt-2">Save Features</button>
+          </div>
+          <p id="editFeaturesStatus" class="text-sm text-center font-bold text-emerald-700"></p>
+        </div>
       </div>
-
-      <form id="addCarForm" class="space-y-3 mb-6">
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Car ID (lowercase, no spaces) *</label>
-          <input type="text" id="newCarId" class="field" placeholder="e.g., toyota_vios" required>
-        </div>
-        <div>
-          <label class="block text-xs font-bold text-slate-600 mb-1">Car Name *</label>
-          <input type="text" id="newCarName" class="field" placeholder="e.g., Toyota Vios 2024" required>
-        </div>
-        <div class="grid grid-cols-2 gap-2">
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Plate Number</label>
-            <input type="text" id="newCarPlate" class="field" placeholder="e.g., ABC 1234">
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-slate-600 mb-1">Color</label>
-            <input type="text" id="newCarColor" class="field" placeholder="e.g., White">
-          </div>
-        </div>
-        <button type="submit" class="w-full rounded-lg bg-indigo-600 text-white font-bold py-2 hover:bg-indigo-700 mt-2">Add Car to Fleet</button>
-      </form>
-
-      <p class="text-sm font-bold text-slate-700 mb-2 border-t pt-4">Current Fleet</p>
-      <ul id="currentCarsList" class="overflow-y-auto max-h-[200px] text-sm space-y-2"></ul>
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- SETTINGS MODAL                             -->
-  <!-- ========================================== -->
   <div id="settingsModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-2xl w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center mb-4 border-b pb-2">
@@ -239,9 +263,6 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- EMAIL MODAL                                -->
-  <!-- ========================================== -->
   <div id="emailModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 shadow-2xl">
       <div class="flex justify-between items-start mb-3">
@@ -260,20 +281,53 @@
     </div>
   </div>
 
-  <!-- Footer -->
   <footer class="text-xs text-slate-500 py-8 text-center bg-slate-50 mt-8">
     <span class="ver">Dashboard Fleet v<span id="appVersion">—</span></span>
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-/* ============================================================================
-   OWNER DASHBOARD — inline app code (v4.1.0)
-   ============================================================================ */
-const APP_VERSION = "4.1.0";
+const APP_VERSION = "4.3.0";
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwcRkc6qj9XHTKV6gdZv1rAKHtxr1hugiPd7-QaT-0H-VR_aGF09dL8sAq9syrtAna/exec";
 const PH_TIMEZONE = "Asia/Manila";
 const BUFFER_MINUTES = 60;
+
+const ALL_FEATURES = {
+  performance: [
+    "1.5L Naturally Aspirated 4-Cylinder Engine", "1.3L Dual VVT-i Engine", 
+    "110 PS Power / 142 Nm Torque", "98 PS Power / 122 Nm Torque", 
+    "CVT Transmission with Manual Tiptronic Mode", "CVT Transmission", 
+    "Front-Wheel Drive (FWD)", "Rear-Wheel Drive (RWD)"
+  ],
+  exterior: [
+    "17-inch Two-Tone Tomahawk Design Alloy Wheels", "15-inch Alloy Wheels", "Steel Wheels with Hubcaps",
+    "London-Eye Halogen Projector Headlamps", "LED Headlamps", "Halogen Headlamps",
+    "Stardust Grille Design", "Chrome Grille", "Black Grille",
+    "Panoramic Sunroof", "Standard Sunroof", "Power Adjustable Side Mirrors", "Power Folding Side Mirrors"
+  ],
+  interior: [
+    "Leather Style Interior", "Fabric Interior", "Premium Leather Interior",
+    "Power-Adjustable Driver Seat", "Manual Adjustable Seats", "Heated Seats",
+    "Automatic Climate Control", "Manual Air Conditioning",
+    "Large Boot Space (443L / 1,457L with seats folded)", "Large Trunk Space (326L)",
+    "Push Start Button", "Keyless Entry", "Touchscreen Climate Controls"
+  ],
+  technology: [
+    "10.25-inch Floating Touchscreen Infotainment", "7-inch Touchscreen Display", "8-inch Touchscreen Display",
+    "Apple CarPlay & Android Auto", "Bluetooth Connectivity", "USB Charging Ports",
+    "7-inch Digital Instrument Cluster", "Analog Instrument Cluster",
+    "Reverse Camera & Rear Parking Sensors", "Reverse Camera Only", "360-Degree Camera",
+    "Wireless Charging Pad", "Premium Sound System"
+  ],
+  safety: [
+    "Dual Front, Side & Curtain Airbags", "Dual Front Airbags", "6 Airbags",
+    "ABS with EBD", "Vehicle Stability Control", "Traction Control",
+    "Hill Start Assist", "Hill Descent Control",
+    "Tire Pressure Monitoring System", "Engine Immobilizer & Security Alarm", 
+    "Speed-Sensing Door Locks", "Seatbelt Reminders", "ISOFIX Child Seat Anchors", 
+    "Blind Spot Monitoring", "Lane Departure Warning"
+  ]
+};
 
 const DEFAULT_DAILY_RATE = 2200;
 let dailyRate = Number(localStorage.getItem("rentalBaseRate")) || DEFAULT_DAILY_RATE;
@@ -357,23 +411,20 @@ async function loadCars() {
       carCatalog = result.cars;
       
       const filter = $("carFilter");
+      const editSelect = $("editCarSelect");
       const currentVal = filter.value;
+      
       filter.innerHTML = '<option value="all">All Cars</option>';
+      editSelect.innerHTML = '<option value="">Select a car...</option>';
+      
       carCatalog.forEach(car => {
-        const opt = document.createElement("option");
-        opt.value = car.id;
-        opt.textContent = car.name;
-        filter.appendChild(opt);
+        const opt1 = document.createElement("option");
+        opt1.value = car.id; opt1.textContent = car.name; filter.appendChild(opt1);
+        
+        const opt2 = document.createElement("option");
+        opt2.value = car.id; opt2.textContent = car.name; editSelect.appendChild(opt2);
       });
       if (currentVal !== "all") filter.value = currentVal;
-
-      const list = $("currentCarsList");
-      list.innerHTML = carCatalog.map(c => `
-        <li class="flex justify-between items-center p-2 border border-slate-200 rounded bg-slate-50">
-          <span><strong>${escapeHtml(c.name)}</strong> (${escapeHtml(c.id)})</span>
-          <span class="text-xs text-slate-500">${escapeHtml(c.plate || "No plate")} | ${escapeHtml(c.color || "No color")}</span>
-        </li>
-      `).join("");
     }
   } catch (err) {
     console.error("Failed to load cars", err);
@@ -877,18 +928,18 @@ document.addEventListener("DOMContentLoaded", () => {
     renderAll();
   });
 
-  // Manage Cars Logic
+  // --- Manage Cars & Features Logic ---
   $("manageCarsBtn").addEventListener("click", () => {
     $("manageCarsModal").classList.remove("hidden");
   });
   $("closeManageCarsBtn").addEventListener("click", closeManageCarsModal);
   
+  // Add Car
   $("addCarForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const btn = e.target.querySelector('button[type="submit"]');
     const orig = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = "Adding...";
+    btn.disabled = true; btn.innerHTML = "Adding...";
     
     try {
       const res = await requestJsonp("addcar", null, {
@@ -904,14 +955,82 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         showToast(res.error || "Failed to add car", "error");
       }
+    } catch(err) { showToast("Network error", "error"); } 
+    finally { btn.disabled = false; btn.innerHTML = orig; }
+  });
+
+  // Edit Features
+  let currentEditCarId = null;
+
+  $("editCarSelect").addEventListener("change", (e) => {
+    currentEditCarId = e.target.value;
+    const container = $("featuresEditorContainer");
+    if (!currentEditCarId) { container.classList.add("hidden"); return; }
+    
+    const car = carCatalog.find(c => c.id === currentEditCarId);
+    if (!car) return;
+
+    container.classList.remove("hidden");
+    const currentFeatures = car.features || {};
+
+    // Render Checkboxes
+    Object.keys(ALL_FEATURES).forEach(category => {
+      const el = $("edit-" + category).querySelector("div");
+      el.innerHTML = ""; 
+      
+      ALL_FEATURES[category].forEach(feature => {
+        const isChecked = (currentFeatures[category] || []).includes(feature);
+        const label = document.createElement("label");
+        label.className = "flex items-start gap-2 cursor-pointer p-1 hover:bg-slate-50 rounded";
+        label.innerHTML = `
+          <input type="checkbox" value="${escapeHtml(feature)}" data-cat="${category}" ${isChecked ? 'checked' : ''} class="mt-0.5 accent-indigo-600">
+          <span>${escapeHtml(feature)}</span>
+        `;
+        el.appendChild(label);
+      });
+    });
+  });
+
+  $("saveFeaturesBtn").addEventListener("click", async () => {
+    if (!currentEditCarId) return;
+    const btn = $("saveFeaturesBtn");
+    const orig = btn.innerHTML;
+    btn.disabled = true; btn.innerHTML = "Saving...";
+    $("editFeaturesStatus").textContent = "";
+
+    const selectedFeatures = { performance: [], exterior: [], interior: [], technology: [], safety: [] };
+    
+    document.querySelectorAll("#featuresEditorContainer input[type='checkbox']").forEach(cb => {
+      if (cb.checked) {
+        const cat = cb.getAttribute("data-cat");
+        selectedFeatures[cat].push(cb.value);
+      }
+    });
+
+    const featuresJson = JSON.stringify(selectedFeatures);
+
+    try {
+      const res = await requestJsonp("updatecarfeatures", null, {
+        carId: currentEditCarId,
+        features: featuresJson
+      });
+      if (res.ok) {
+        $("editFeaturesStatus").textContent = "✅ Features saved successfully!";
+        await loadCars(); // Reload catalog to reflect changes immediately
+      } else {
+        $("editFeaturesStatus").textContent = "❌ " + (res.error || "Failed to save");
+        $("editFeaturesStatus").className = "text-sm text-center font-bold text-red-600";
+      }
     } catch(err) {
-      showToast("Network error", "error");
+      $("editFeaturesStatus").textContent = "❌ Network error.";
+      $("editFeaturesStatus").className = "text-sm text-center font-bold text-red-600";
     } finally {
-      btn.disabled = false;
-      btn.innerHTML = orig;
+      btn.disabled = false; btn.innerHTML = orig;
+      setTimeout(() => $("editFeaturesStatus").textContent = "", 3000);
     }
   });
 
+  // Table Filters
   document.querySelectorAll(".filter-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
       document.querySelectorAll(".filter-btn").forEach(b => {
