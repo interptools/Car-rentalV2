@@ -1,8 +1,8 @@
 <!doctype html>
 <!--
   ============================================================
-  CAR RENTAL — CUSTOMER FORM (DYNAMIC FLEET VERSION)
-  VERSION: 4.1.0 (Dynamic Cars from Google Sheet)
+  CAR RENTAL — CUSTOMER FORM (DYNAMIC FLEET + FEATURES)
+  VERSION: 4.2.0
   UPDATED: 2026-10-19
   ============================================================
 -->
@@ -154,66 +154,39 @@
       </div>
     </div>
 
-    <!-- Vehicle Features Section -->
+    <!-- Vehicle Features Section (DYNAMIC) -->
     <section class="bg-white border border-slate-200 rounded-2xl p-5 md:p-7 shadow-sm mb-6">
-      <h2 class="text-lg font-bold mb-4">Vehicle — Key Features</h2>
+      <h2 class="text-lg font-bold mb-4" id="featuresTitle">Vehicle — Key Features</h2>
       <div class="grid md:grid-cols-2 gap-x-8 gap-y-6">
         
         <!-- Performance -->
-        <div>
+        <div id="section-performance">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">⚙️ Performance</h3>
-          <ul class="space-y-2 text-sm text-slate-700">
-            <li class="feature-item"><span class="feature-icon">▪</span> 1.5L Naturally Aspirated 4-Cylinder Engine</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> 110 PS Power / 142 Nm Torque</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> CVT Transmission with Manual Tiptronic Mode</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Front-Wheel Drive (FWD)</li>
-          </ul>
+          <ul class="space-y-2 text-sm text-slate-700" id="features-performance"></ul>
         </div>
 
         <!-- Exterior -->
-        <div>
+        <div id="section-exterior">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">🚙 Exterior</h3>
-          <ul class="space-y-2 text-sm text-slate-700">
-            <li class="feature-item"><span class="feature-icon">▪</span> 17-inch Two-Tone Tomahawk Design Alloy Wheels</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> London-Eye Halogen Projector Headlamps</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Stardust Grille Design</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Panoramic Sunroof</li>
-          </ul>
+          <ul class="space-y-2 text-sm text-slate-700" id="features-exterior"></ul>
         </div>
 
         <!-- Interior & Comfort -->
-        <div>
+        <div id="section-interior">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">🪑 Interior & Comfort</h3>
-          <ul class="space-y-2 text-sm text-slate-700">
-            <li class="feature-item"><span class="feature-icon">▪</span> Leather Style Interior</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Power-Adjustable Driver Seat</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Automatic Climate Control</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Large Boot Space (443L / 1,457L with seats folded)</li>
-          </ul>
+          <ul class="space-y-2 text-sm text-slate-700" id="features-interior"></ul>
         </div>
 
         <!-- Technology -->
-        <div>
+        <div id="section-technology">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">📱 Technology</h3>
-          <ul class="space-y-2 text-sm text-slate-700">
-            <li class="feature-item"><span class="feature-icon">▪</span> 10.25-inch Floating Touchscreen Infotainment</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Apple CarPlay & Android Auto</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> 7-inch Digital Instrument Cluster</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Reverse Camera & Rear Parking Sensors</li>
-          </ul>
+          <ul class="space-y-2 text-sm text-slate-700" id="features-technology"></ul>
         </div>
 
         <!-- Safety -->
-        <div class="md:col-span-2">
+        <div class="md:col-span-2" id="section-safety">
           <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 border-b pb-2">🛡️ Safety</h3>
-          <ul class="grid sm:grid-cols-2 gap-2 text-sm text-slate-700">
-            <li class="feature-item"><span class="feature-icon">▪</span> Dual Front, Side & Curtain Airbags</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> ABS with EBD</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Hill Start Assist</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Tire Pressure Monitoring System</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Engine Immobilizer & Security Alarm</li>
-            <li class="feature-item"><span class="feature-icon">▪</span> Speed-Sensing Door Locks</li>
-          </ul>
+          <ul class="grid sm:grid-cols-2 gap-2 text-sm text-slate-700" id="features-safety"></ul>
         </div>
 
       </div>
@@ -297,13 +270,10 @@
             <label for="govIdType">Government ID type *</label>
             <select class="field mt-1" id="govIdType" name="govIdType" required>
               <option value="">Select ID type</option>
-              <!-- PRIMARY IDS -->
               <option>PhilSys ID (National ID / ePhilID)</option>
               <option>Philippine Passport</option>
               <option>Driver's License (Professional / Non-Pro)</option>
               <option>UMID (Unified Multi-Purpose ID)</option>
-              
-              <!-- SECONDARY GOVERNMENT IDS -->
               <option>PRC ID (Professional Regulation Commission)</option>
               <option>Postal ID (Philippine Postal Corporation)</option>
               <option>Voter's ID / Voter's Certification</option>
@@ -312,27 +282,20 @@
               <option>GSIS ID</option>
               <option>Pag-IBIG Loyalty Card</option>
               <option>TIN ID (BIR Form 2316 / Digital)</option>
-              
-              <!-- CLEARANCES -->
               <option>NBI Clearance</option>
               <option>Police Clearance</option>
               <option>Barangay ID / Certificate</option>
               <option>Court Clearance</option>
-              
-              <!-- SPECIAL SECTORS -->
               <option>Senior Citizen ID</option>
               <option>PWD ID (Person with Disability)</option>
               <option>Solo Parent ID</option>
               <option>OFW ID (OWWA / DMW)</option>
               <option>Seafarer's Identification and Record Book (SIRB)</option>
-              
-              <!-- FOREIGNERS / OTHERS -->
               <option>ACR I-Card (Alien Certificate of Registration)</option>
               <option>Student ID (University / School)</option>
               <option>Company ID (with photo and signature)</option>
               <option>Integrated Bar of the Philippines (IBP) ID</option>
               <option>Firearms License</option>
-              
               <option>Other</option>
             </select>
           </div>
@@ -387,7 +350,6 @@
             <textarea class="field mt-1" id="notes" name="notes" rows="2" maxlength="1000" placeholder="Describe existing scratches, dents, or equipment issues."></textarea>
           </div>
         </div>
-        <p class="text-xs text-slate-500 mt-3">Rental days are calculated as elapsed time rounded up to a whole day. Confirm the agreed billing rule with the owner if a different rule applies.</p>
       </section>
 
       <!-- Section 3: Terms -->
@@ -395,44 +357,16 @@
         <h2 class="text-lg font-bold mb-3">3. Rental agreement terms</h2>
         <p class="text-sm text-slate-600 mb-4">Read the terms below. These are a starter template and should be reviewed for your actual rental operation and applicable Philippine law before use.</p>
         
-        <!-- FULL TERMS HARDCODED EXACTLY AS ORIGINAL -->
         <div id="termsPreview" class="terms-scroll space-y-4 text-sm leading-6 border border-slate-200 rounded-xl p-4 bg-slate-50 max-h-64 overflow-y-auto">
-          <section>
-            <h3 class="font-bold text-slate-900">Vehicle Details</h3>
-            <p class="text-slate-700">The rented vehicle is an MG ZS Lux 2025, black, registration plate GBJ 3556. The renter must inspect the vehicle and report any pre-existing damage before departure. The renter must not use the vehicle for any purpose other than the agreed rental use and must comply with local traffic law and the rental agreement.</p>
-          </section>
-          <section>
-            <h3 class="font-bold text-slate-900">Rental Period</h3>
-            <p class="text-slate-700">The rental begins at the agreed pick-up date and time and ends at the agreed return date and time. The renter must return the vehicle on time to the agreed location. Extensions require prior written approval from the owner and may incur additional charges.</p>
-          </section>
-          <section>
-            <h3 class="font-bold text-slate-900">Fuel Policy</h3>
-            <p class="text-slate-700">The vehicle's departure fuel level is recorded on this agreement. Unless the owner agrees otherwise in writing, the renter must return the vehicle with the same fuel level. Refuelling is the renter's responsibility unless stated otherwise.</p>
-          </section>
-          <section>
-            <h3 class="font-bold text-slate-900">Renter's Obligations</h3>
-            <p class="text-slate-700">The renter confirms that their driver's licence is valid for the rental period and must carry the licence and required vehicle documents while driving. The renter must obey traffic laws, maintain safe driving standards, and ensure all occupants are properly seated and secured.</p>
-          </section>
-          <section>
-            <h3 class="font-bold text-slate-900">Damage / Loss</h3>
-            <p class="text-slate-700">The renter must promptly report any collision, theft, damage, impoundment, or third-party claim and cooperate with lawful reporting and insurance procedures. Responsibility for loss, damage, or third-party claims will be determined in line with the agreement and applicable law.</p>
-          </section>
-          <section>
-            <h3 class="font-bold text-slate-900">Security Deposit</h3>
-            <p class="text-slate-700">Any security deposit amount, payment method, deductions, and refund timeline must be separately disclosed and agreed in writing before handover. Deductions for damage, cleaning, or unpaid charges will be applied only as agreed.</p>
-          </section>
-          <section>
-            <h3 class="font-bold text-slate-900">Prohibited Use</h3>
-            <p class="text-slate-700">The vehicle must not be used for unlawful activity, racing, towing without permission, driving while impaired, carrying prohibited goods, sub-renting, or off-road use without the owner's explicit written approval.</p>
-          </section>
-          <section>
-            <h3 class="font-bold text-slate-900">Return Checklist</h3>
-            <p class="text-slate-700">At return, the parties should record the return date and time, odometer reading, fuel level, visible condition and any new damage, keys and accessories returned, and any agreed charges or deductions.</p>
-          </section>
-          <section>
-            <h3 class="font-bold text-slate-900">Privacy and Recordkeeping</h3>
-            <p class="text-slate-700">The renter understands that the details submitted are used to administer the rental, contact the renter in connection with the rental, document consent, and maintain business records required for the rental relationship.</p>
-          </section>
+          <section><h3 class="font-bold text-slate-900">Vehicle Details</h3><p class="text-slate-700">The rented vehicle must be inspected by the renter before departure. Any pre-existing damage must be reported immediately.</p></section>
+          <section><h3 class="font-bold text-slate-900">Rental Period</h3><p class="text-slate-700">The rental begins at the agreed pick-up date and time and ends at the agreed return date and time. Extensions require prior written approval.</p></section>
+          <section><h3 class="font-bold text-slate-900">Fuel Policy</h3><p class="text-slate-700">The renter must return the vehicle with the same fuel level. Refuelling is the renter's responsibility unless stated otherwise.</p></section>
+          <section><h3 class="font-bold text-slate-900">Renter's Obligations</h3><p class="text-slate-700">The renter confirms that their driver's licence is valid and must carry it while driving. The renter must obey all traffic laws.</p></section>
+          <section><h3 class="font-bold text-slate-900">Damage / Loss</h3><p class="text-slate-700">Any collision, theft, or damage must be promptly reported. Responsibility will be determined by the agreement and applicable law.</p></section>
+          <section><h3 class="font-bold text-slate-900">Security Deposit</h3><p class="text-slate-700">Any deposit amount and refund timeline must be separately agreed in writing before handover.</p></section>
+          <section><h3 class="font-bold text-slate-900">Prohibited Use</h3><p class="text-slate-700">The vehicle must not be used for racing, towing, driving impaired, or any unlawful activity.</p></section>
+          <section><h3 class="font-bold text-slate-900">Return Checklist</h3><p class="text-slate-700">At return, the odometer, fuel level, and visible condition will be recorded by both parties.</p></section>
+          <section><h3 class="font-bold text-slate-900">Privacy and Recordkeeping</h3><p class="text-slate-700">The renter understands that submitted details are used to administer the rental and maintain business records.</p></section>
         </div>
         <p class="text-xs text-slate-500 mt-1 text-right">Scroll to read all terms</p>
         
@@ -443,15 +377,12 @@
           </label>
           <button type="button" id="openPrivacyBtn" class="text-sm text-sky-700 font-bold hover:underline self-start sm:self-center">View Data Privacy Notice</button>
         </div>
-        <p class="text-xs text-slate-500 mt-2">Only submit information you are authorized to provide. Your details and ID information will be stored in the owner's Google Sheet.</p>
       </section>
 
-      <!-- Live Summary Box -->
       <div id="bookingSummary" class="hidden bg-sky-50 border border-sky-200 rounded-xl p-4 text-sm text-sky-900 mb-2">
         <p id="summaryText"></p>
       </div>
 
-      <!-- Submit Button -->
       <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
         <button id="submitBtn" type="submit" class="rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-60 text-white font-bold px-6 py-3 min-w-[200px] transition-colors">
           Submit rental details
@@ -466,9 +397,7 @@
     </footer>
   </main>
 
-  <!-- ========================================== -->
-  <!-- PRIVACY MODAL                              -->
-  <!-- ========================================== -->
+  <!-- PRIVACY MODAL -->
   <div id="privacyModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl flex flex-col max-h-[90vh]">
       <div class="flex justify-between items-center mb-4">
@@ -486,7 +415,6 @@
         </ul>
         <p><strong>How we use your data:</strong> Your information is used strictly to verify your identity, draft the rental agreement, and contact you regarding your reservation or emergencies.</p>
         <p><strong>Storage & Security:</strong> Your data is securely stored in a restricted Google Sheet. We do not sell or share your data with third parties, except as required by law or insurance claims.</p>
-        <p><strong>Retention:</strong> We retain your data only for as long as necessary to fulfill the rental agreement and comply with local laws.</p>
         <p>By checking the agreement box, you consent to the collection and use of your data as described above.</p>
       </div>
       <div class="mt-6 text-right">
@@ -495,24 +423,18 @@
     </div>
   </div>
 
-  <!-- ========================================== -->
-  <!-- SUCCESS MODAL                              -->
-  <!-- ========================================== -->
+  <!-- SUCCESS MODAL -->
   <div id="successModal" class="hidden fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl text-center">
       <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-4">
-        <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
+        <svg class="h-8 w-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
       </div>
       <h3 class="text-2xl font-bold text-slate-900 mb-2">Request Submitted!</h3>
       <p class="text-slate-600 mb-5">Your rental details have been securely sent to the owner.</p>
       <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left">
-        <p class="text-sm text-amber-800 font-medium">
-          <strong>⚠️ Important:</strong> Your dates are <em>not yet confirmed</em>. Please watch your inbox and wait for an <strong>email confirmation</strong> from the owner to finalize your reservation.
-        </p>
+        <p class="text-sm text-amber-800 font-medium"><strong>⚠️ Important:</strong> Your dates are <em>not yet confirmed</em>. Please wait for an email confirmation.</p>
       </div>
-      <button id="closeSuccessModal" class="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold py-3 transition-colors">Got it, thanks!</button>
+      <button id="closeSuccessModal" class="w-full rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold py-3">Got it, thanks!</button>
     </div>
   </div>
 
@@ -520,12 +442,30 @@
 
 <script>
 /* ============================================================================
-   CUSTOMER FORM + AVAILABILITY CALENDAR — DYNAMIC FLEET (v4.1.0)
+   CUSTOMER FORM + AVAILABILITY CALENDAR — DYNAMIC FLEET (v4.2.0)
    ============================================================================ */
-const APP_VERSION = "4.1.0";
-const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwcRkc6qj9XHTKV6gdZv1rAKHtxr1hugiPd7-QaT-0H-VR_aGF09dL8sAq9syrtAna/exec";
+const APP_VERSION = "4.2.0";
+const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwrP7bc3q3AVvyuxct1kNY8HxIQBxh7tbvy2Qlvvzs4oon-3lbMtjTe2hJAwaEyTrwH/exec";
 const PH_TIMEZONE = "Asia/Manila";
 const BUFFER_MINUTES = 60;
+
+// 🚗 ADD FEATURES FOR YOUR CARS HERE
+const CAR_FEATURES = {
+  "mg_zs": {
+    performance: ["1.5L Naturally Aspirated 4-Cylinder Engine", "110 PS Power / 142 Nm Torque", "CVT Transmission with Manual Tiptronic Mode", "Front-Wheel Drive (FWD)"],
+    exterior: ["17-inch Two-Tone Tomahawk Design Alloy Wheels", "London-Eye Halogen Projector Headlamps", "Stardust Grille Design", "Panoramic Sunroof"],
+    interior: ["Leather Style Interior", "Power-Adjustable Driver Seat", "Automatic Climate Control", "Large Boot Space (443L / 1,457L with seats folded)"],
+    technology: ["10.25-inch Floating Touchscreen Infotainment", "Apple CarPlay & Android Auto", "7-inch Digital Instrument Cluster", "Reverse Camera & Rear Parking Sensors"],
+    safety: ["Dual Front, Side & Curtain Airbags", "ABS with EBD", "Hill Start Assist", "Tire Pressure Monitoring System", "Engine Immobilizer & Security Alarm", "Speed-Sensing Door Locks"]
+  },
+  "toyota_vios": {
+    performance: ["1.3L Dual VVT-i Engine", "98 PS Power / 122 Nm Torque", "CVT Transmission", "Front-Wheel Drive (FWD)"],
+    exterior: ["15-inch Alloy Wheels", "LED Headlamps", "Chrome Grille", "Power Adjustable Side Mirrors"],
+    interior: ["Fabric Interior", "Manual Air Conditioning", "Push Start Button", "Large Trunk Space (326L)"],
+    technology: ["7-inch Touchscreen Display", "Apple CarPlay & Android Auto", "Bluetooth Connectivity", "Reverse Camera"],
+    safety: ["Dual Front Airbags", "ABS with EBD", "Vehicle Stability Control", "Hill Start Assist", "Seatbelt Reminders"]
+  }
+};
 
 let currentCarId = "";
 let carCatalog = [];
@@ -611,7 +551,7 @@ async function loadCars() {
       });
       
       select.disabled = false;
-      currentCarId = carCatalog[0].id; // Default to first car
+      currentCarId = carCatalog[0].id;
       select.value = currentCarId;
       updateCarDisplay();
       loadAvailability();
@@ -820,14 +760,39 @@ function updateCarDisplay() {
   const car = carCatalog.find(c => c.id === currentCarId);
   if (!car) return;
   
-  // Generate image path dynamically based on ID
+  // 1. Update Image & Basic Info
   const imagePath = "images/" + car.id + ".jpg";
-  
   document.getElementById("carImage").src = imagePath;
   document.getElementById("carImage").alt = car.name;
   document.getElementById("carName").textContent = car.name;
   document.getElementById("carPlate").textContent = car.plate || "N/A";
   document.getElementById("carColor").textContent = car.color || "N/A";
+
+  // 2. Update Features
+  document.getElementById("featuresTitle").textContent = car.name + " — Key Features";
+  
+  const features = CAR_FEATURES[currentCarId];
+  
+  if (!features) {
+    // If features aren't defined in the code for this new car, hide the lists
+    ["performance", "exterior", "interior", "technology", "safety"].forEach(cat => {
+      document.getElementById("features-" + cat).innerHTML = '<li class="text-slate-400 italic">Features not listed yet.</li>';
+    });
+    return;
+  }
+
+  // Helper to render list
+  const renderList = (id, items) => {
+    const el = document.getElementById("features-" + id);
+    if (!el || !items) return;
+    el.innerHTML = items.map(item => `<li class="feature-item"><span class="feature-icon">▪</span> ${escapeHtml(item)}</li>`).join("");
+  };
+
+  renderList("performance", features.performance);
+  renderList("exterior", features.exterior);
+  renderList("interior", features.interior);
+  renderList("technology", features.technology);
+  renderList("safety", features.safety);
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -868,8 +833,6 @@ document.getElementById("refreshAssetsBtn").addEventListener("click", async func
   } catch (e) { console.warn("Cache clear failed:", e); }
   const url = new URL(location.href); url.searchParams.set("v", APP_VERSION + "." + Date.now()); location.replace(url.toString());
 });
-
-console.log("%cCar Rental Dynamic Fleet Form v" + APP_VERSION + " loaded", "background:#0f172a;color:#0ea5e9;font-weight:bold;padding:2px 6px;border-radius:4px");
 </script>
 </body>
 </html>
