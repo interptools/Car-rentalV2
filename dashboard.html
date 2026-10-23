@@ -2,7 +2,7 @@
 <!--
   ============================================================
   CAR RENTAL — OWNER DASHBOARD (FLEET + FEATURES MANAGER)
-  VERSION: 4.5.2 (Fixed Calendar Ghost Cars & Precision)
+  VERSION: 4.5.3 (Fixed Login Verification & Calendar Bugs)
   ============================================================
 -->
 <html lang="en">
@@ -10,7 +10,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex,nofollow">
-  <meta name="app-version" content="4.5.2">
+  <meta name="app-version" content="4.5.3">
   <title>Owner Dashboard | Fleet</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -60,7 +60,7 @@
           <input type="checkbox" id="rememberMe" class="h-4 w-4 accent-sky-600">
           <span class="text-sm text-slate-600 font-medium">Remember me for this session</span>
         </label>
-        <button class="w-full rounded-lg bg-slate-900 text-white font-bold py-3 hover:bg-slate-800">Unlock Dashboard</button>
+        <button id="loginBtn" class="w-full rounded-lg bg-slate-900 text-white font-bold py-3 hover:bg-slate-800 disabled:opacity-50">Unlock Dashboard</button>
         <p id="loginStatus" class="text-sm text-red-700 font-medium text-center" role="status"></p>
       </form>
     </div>
@@ -296,7 +296,7 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
-const APP_VERSION = "4.5.2";
+const APP_VERSION = "4.5.3";
 const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwcRkc6qj9XHTKV6gdZv1rAKHtxr1hugiPd7-QaT-0H-VR_aGF09dL8sAq9syrtAna/exec";
 const PH_TIMEZONE = "Asia/Manila";
 const BUFFER_MINUTES = 60;
@@ -466,7 +466,6 @@ async function loadCars() {
   try {
     const result = await requestJsonp("getcars");
     if (result.ok && result.cars) {
-      // Filter out ghost/empty rows from Google Sheets to prevent calendar logic bugs
       carCatalog = result.cars.filter(c => c && c.id && c.name);
       
       const filter = $("carFilter");
@@ -501,10 +500,12 @@ async function loadRecords() {
     renderAll();
     status.textContent = `Last updated: ${new Date().toLocaleTimeString("en-PH", { timeZone: PH_TIMEZONE })}`;
     status.className = "p-2 text-sm text-slate-500";
+    return true; // Success
   } catch (error) {
     console.error(error);
     status.textContent = "Could not load records. Check connection or key.";
     status.className = "p-2 text-sm text-red-600 font-bold";
+    return false; // Failure
   }
 }
 
@@ -719,7 +720,6 @@ function getDayStatusForCar(dateKey, carRecords) {
       else merged.push(interval);
     }
   }
-  // Added a <= 1 and >= 1439 tolerance to catch 23:59 precision
   if (merged.length === 1 && merged[0][0] <= 1 && merged[0][1] >= 1439) return 'full';
   return 'partial';
 }
@@ -1039,17 +1039,38 @@ document.addEventListener("DOMContentLoaded", () => {
     loadRecords();
   }
 
-  $("loginForm").addEventListener("submit", (e) => {
+  $("loginForm").addEventListener("submit", async (e) => {
     e.preventDefault();
     const key = $("adminKey").value.trim();
+    const statusEl = $("loginStatus");
+    const btn = $("loginBtn");
+    
     if (!key) return;
-    if ($("rememberMe").checked) sessionStorage.setItem("rentalAdminKey", key);
+    
+    // Show loading state
+    btn.disabled = true;
+    const origText = btn.textContent;
+    btn.textContent = "Unlocking...";
+    statusEl.textContent = "";
+    
     adminKey = key;
-    $("gate").classList.add("hidden");
-    $("dashboard").classList.remove("hidden");
-    document.querySelectorAll("header button").forEach(b => b.classList.remove("hidden"));
-    loadCars();
-    loadRecords();
+    
+    // Verify by loading records
+    const success = await loadRecords();
+    
+    if (success) {
+      if ($("rememberMe").checked) sessionStorage.setItem("rentalAdminKey", key);
+      $("gate").classList.add("hidden");
+      $("dashboard").classList.remove("hidden");
+      document.querySelectorAll("header button").forEach(b => b.classList.remove("hidden"));
+      loadCars();
+    } else {
+      // Failed login
+      adminKey = "";
+      statusEl.textContent = "Invalid key or network error. Please try again.";
+      btn.disabled = false;
+      btn.textContent = origText;
+    }
   });
 
   $("logoutBtn").addEventListener("click", () => {
